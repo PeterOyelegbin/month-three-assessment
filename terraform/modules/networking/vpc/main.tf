@@ -52,6 +52,7 @@ resource "aws_eip" "nat" {
     domain = "vpc"
     tags = {
         Name = "${var.project_name}-nat-eip"
+        ManagedBy = "terraform"
     }
 }
 
@@ -62,6 +63,7 @@ resource "aws_nat_gateway" "nat" {
 
     tags = {
         Name = "${var.project_name}-nat"
+        ManagedBy = "terraform"
     }
 
     depends_on = [aws_internet_gateway.igw]

@@ -3,20 +3,19 @@ variable "project_name" {
   type        = string
 }
 
+variable "private_subnet_ids" {
+  description = "Private subnet IDs for autoscaling group"
+  type        = list(string)
+}
+
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"  
 }
 
 variable "instance_sg_id" {
   description = "Security group ID for the instances"
   type        = string
-}
-
-variable "availability_zones" {
-  description = "Availability zones for autoscaling group"
-  type        = list(string)
 }
 
 variable "desired_capacity" {

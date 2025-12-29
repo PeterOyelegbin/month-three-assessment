@@ -41,6 +41,7 @@ resource "aws_security_group" "alb_sg" {
 
     tags = {
         Name = "${var.project_name}-alb-sg"
+        ManagedBy = "terraform"
     }
 }
 
@@ -87,5 +88,6 @@ resource "aws_security_group" "instance_sg" {
 
     tags = {
         Name = "${var.project_name}-instance-sg"
+        ManagedBy = "terraform"
     }
 }

@@ -21,7 +21,7 @@ terraform {
 provider "aws" {
     access_key = var.access_key
     secret_key = var.secret_key
-    region = var.region
+    region     = var.region
 }
 
 module "vpc" {
@@ -36,17 +36,17 @@ module "vpc" {
 module "security_groups" {
     source = "./modules/networking/security-groups"
 
-    vpc_id = module.vpc.vpc_id
+    vpc_id       = module.vpc.vpc_id
     project_name = var.project_name
 }
 
 module "autoscaling" {
     source = "./modules/compute/autoscaling"
 
-    project_name       = "${var.project_name}-backend"
+    project_name       = var.project_name
+    private_subnet_ids = module.vpc.private_subnet_ids
     instance_type      = var.instance_type
-    instance_sg_id     = module.security_groups.backend_sg_id
-    availability_zones = var.availability_zones
+    instance_sg_id     = module.security_groups.instance_sg_id
     desired_capacity   = var.desired_capacity
     max_size           = var.max_size
     min_size           = var.min_size
@@ -55,8 +55,8 @@ module "autoscaling" {
 module "load_balancer" {
     source = "./modules/compute/load-balancer"
 
-    project_name = var.project_name
-    vpc_id       = module.vpc.vpc_id
+    project_name      = var.project_name
+    vpc_id            = module.vpc.vpc_id
     public_subnet_ids = module.vpc.public_subnet_ids
-    alb_sg_id    = module.security_groups.alb_sg_id
+    alb_sg_id         = module.security_groups.alb_sg_id
 }

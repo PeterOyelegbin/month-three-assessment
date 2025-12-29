@@ -32,13 +32,13 @@ resource "aws_key_pair" "generated_key" {
 
 # Save private key to local file
 resource "local_file" "private_key" {
-  content  = tls_private_key.key_pair.private_key_pem
-  filename = "${path.root}/${aws_key_pair.generated_key.key_name}.pem"
-  file_permission = "0400"
+    content  = tls_private_key.key_pair.private_key_pem
+    filename = "${path.root}/${aws_key_pair.generated_key.key_name}.pem"
+    file_permission = "0400"
 }
 
 resource "aws_launch_template" "instance" {
-    name_prefix   = "${var.project_name}-"
+    name_prefix   = "${var.project_name}-instance"
     image_id      = data.aws_ami.ubuntu.id
     instance_type = var.instance_type
     key_name      = aws_key_pair.generated_key.key_name
@@ -51,23 +51,32 @@ resource "aws_launch_template" "instance" {
         security_groups             = [var.instance_sg_id]
     }
 
+    # user_data = base64encode(templatefile("${path.module}/userdata.sh"))
+
     tag_specifications {
         resource_type = "instance"
         tags = {
             Name = "${var.project_name}-instance"
-            ManagedBy   = "terraform"
+            ManagedBy = "terraform"
         }
     }
 }
 
 resource "aws_autoscaling_group" "auto-scaling" {
-    availability_zones = var.availability_zones
-    desired_capacity   = var.desired_capacity
-    max_size           = var.max_size
-    min_size           = var.min_size
+    name                = var.project_name
+    desired_capacity    = var.desired_capacity
+    max_size            = var.max_size
+    min_size            = var.min_size
+    vpc_zone_identifier = var.private_subnet_ids
 
     launch_template {
         id      = aws_launch_template.instance.id
         version = "$Latest"
+    }
+
+    tag {
+        key                 = "Name"
+        value               = "${var.project_name}-auto-scaling-grp"
+        propagate_at_launch = true
     }
 }
