@@ -13,6 +13,14 @@ terraform {
             version = "~> 2.0"
         }
     }
+
+    # backend "s3" {
+    #     bucket         = "starttech-tf-state"
+    #     key            = "production/terraform.tfstate"
+    #     region         = "us-east-1"
+    #     encrypt        = true
+    #     dynamodb_table = "terraform-locks"
+    # }
     
     required_version = ">= 0.12"
 }
@@ -59,4 +67,19 @@ module "load_balancer" {
     vpc_id            = module.vpc.vpc_id
     public_subnet_ids = module.vpc.public_subnet_ids
     alb_sg_id         = module.security_groups.alb_sg_id
+}
+
+module "s3" {
+    source = "./modules/storage/s3-bucket"
+
+    project_name                = var.project_name
+    cloudfront_distribution_arn = module.cloudfront.distribution_arn
+}
+
+module "cloudfront" {
+    source = "./modules/storage/cloudfront"
+
+    project_name                    = var.project_name
+    s3_bucket_regional_domain_name  = module.s3.bucket_regional_domain_name
+    origin_id                       = "s3-${module.s3.bucket_id}"
 }

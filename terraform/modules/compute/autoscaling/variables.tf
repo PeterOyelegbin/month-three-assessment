@@ -13,7 +13,8 @@ variable "instance_type" {
   type        = string
 }
 
-variable "instance_sg_id" {
+# Return back to instance_sg_id 
+variable "alb_sg_id" {
   description = "Security group ID for the instances"
   type        = string
 }
