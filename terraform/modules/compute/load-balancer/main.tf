@@ -21,14 +21,14 @@ resource "aws_lb" "alb" {
 
 resource "aws_lb_target_group" "target-group" {
     name     = "${var.project_name}-tg"
-    port     = 8080
+    port     = 80 # return to 8080 according to system requirements
     protocol = "HTTP"
     vpc_id   = var.vpc_id
 
     health_check {
         enabled             = true
         interval            = 30
-        path                = "/health"
+        path                = "/" # return to /health according to system requirements
         port                = "traffic-port"
         protocol            = "HTTP"
         timeout             = 5

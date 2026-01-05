@@ -3,13 +3,23 @@ variable "project_name" {
   type        = string
 }
 
-variable "private_subnet_ids" {
-  description = "Private subnet IDs for autoscaling group"
+variable "public_subnet_ids" {
+  description = "Public subnet IDs for autoscaling group"
   type        = list(string)
 }
 
+# variable "private_subnet_ids" {
+#   description = "Private subnet IDs for autoscaling group"
+#   type        = list(string)
+# }
+
 variable "instance_type" {
   description = "EC2 instance type"
+  type        = string
+}
+
+variable "instance_profile_name" {
+  description = "IAM instance profile name"
   type        = string
 }
 
@@ -32,4 +42,9 @@ variable "max_size" {
 variable "min_size" {
   description = "Minimum size for the autoscaling group"
   type        = number
+}
+
+variable "target_group_arn" {
+  description = "ALB target group ARN"
+  type        = string
 }

@@ -1,9 +1,24 @@
-data "aws_ami" "ubuntu" {
+# data "aws_ami" "ubuntu" {
+#     most_recent = true
+#     owners      = ["099720109477"] # Canonical
+#     filter {
+#         name   = "name"
+#         values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+#     }
+
+#     filter {
+#         name   = "virtualization-type"
+#         values = ["hvm"]
+#     }
+# }
+
+data "aws_ami" "amazon_linux" {
     most_recent = true
-    owners      = ["099720109477"] # Canonical
+    owners      = ["amazon"] # Amazon Linux 2
+
     filter {
         name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+        values = ["amzn2-ami-hvm-*-x86_64-gp2"]
     }
 
     filter {
@@ -11,6 +26,7 @@ data "aws_ami" "ubuntu" {
         values = ["hvm"]
     }
 }
+
 
 # Generate RSA key pair
 resource "tls_private_key" "key_pair" {
@@ -22,8 +38,7 @@ resource "tls_private_key" "key_pair" {
 resource "aws_key_pair" "generated_key" {
     key_name   = "${var.project_name}-key"
     public_key = tls_private_key.key_pair.public_key_openssh
-    # public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
-
+    
     tags = {
         Name = "${var.project_name}-key"
         ManagedBy = "terraform"
@@ -38,13 +53,14 @@ resource "local_file" "private_key" {
 }
 
 resource "aws_launch_template" "instance" {
-    name_prefix   = "${var.project_name}-instance"
-    image_id      = data.aws_ami.ubuntu.id
+    name_prefix   = "${var.project_name}-amazon-instance"
+    image_id      = data.aws_ami.amazon_linux.id
     instance_type = var.instance_type
     key_name      = aws_key_pair.generated_key.key_name
-    # iam_instance_profile {
-    #     name = aws_iam_instance_profile.backend.name
-    # }
+
+    iam_instance_profile {
+        name = var.instance_profile_name
+    }
 
     network_interfaces {
         associate_public_ip_address = true # Return back to false
@@ -62,18 +78,22 @@ resource "aws_launch_template" "instance" {
     tag_specifications {
         resource_type = "instance"
         tags = {
-            Name = "${var.project_name}-instance"
+            Name = "${var.project_name}-instance-temp"
             ManagedBy = "terraform"
         }
     }
 }
 
 resource "aws_autoscaling_group" "auto-scaling" {
-    name                = var.project_name
-    desired_capacity    = var.desired_capacity
-    max_size            = var.max_size
-    min_size            = var.min_size
-    vpc_zone_identifier = var.private_subnet_ids
+    name                      = var.project_name
+    desired_capacity          = var.desired_capacity
+    max_size                  = var.max_size
+    min_size                  = var.min_size
+    vpc_zone_identifier       = var.public_subnet_ids
+    health_check_type         = "ELB"
+    health_check_grace_period = 300
+
+    target_group_arns = [var.target_group_arn]
 
     launch_template {
         id      = aws_launch_template.instance.id
@@ -82,7 +102,7 @@ resource "aws_autoscaling_group" "auto-scaling" {
 
     tag {
         key                 = "Name"
-        value               = "${var.project_name}-auto-scaling-grp"
+        value               = "${var.project_name}-asg-instance"
         propagate_at_launch = true
     }
 }

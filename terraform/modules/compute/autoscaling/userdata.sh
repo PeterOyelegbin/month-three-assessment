@@ -3,10 +3,12 @@
 set -e
 
 # Update server
-apt update && apt upgrade -y
+# sudo apt update && sudo apt upgrade -y
+sudo yum update -y
 
 # Install nginx
-apt install nginx -y
+# sudo apt install nginx -y
+sudo amazon-linux-extras install nginx1 -y
 
 # Start nginx
-systemctl start nginx
+sudo systemctl start nginx

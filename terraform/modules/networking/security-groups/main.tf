@@ -91,3 +91,41 @@ resource "aws_security_group" "instance_sg" {
         ManagedBy = "terraform"
     }
 }
+
+# Create redis security group
+resource "aws_security_group" "redis" {
+    name        = "${var.project_name}-redis-sg"
+    description = "Security group for redis"
+    vpc_id      = var.vpc_id
+
+    # Allow TCP from alb security group only
+    ingress {
+        from_port       = 6379
+        to_port         = 6379
+        protocol        = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+        # security_groups = [aws_security_group.alb_sg.id] # app/ecs/asg SG
+    }
+
+    # Allow all traffic within the private security group
+    ingress {
+        description = "All traffic within private SG"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        self        = true
+    }
+
+    # Allow all outbound traffic
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags = {
+        Name = "${var.project_name}-redis-sg"
+        ManagedBy = "terraform"
+    }
+}
