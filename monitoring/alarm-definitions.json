@@ -1,0 +1,81 @@
+{
+  "alarms": [
+    {
+      "AlarmName": "High-CPU-Utilization",
+      "AlarmDescription": "CPU utilization is above 80% for 5 minutes",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/EC2",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "AutoScalingGroupName",
+          "Value": "starttech-backend-asg"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80.0,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "TreatMissingData": "breaching"
+    },
+    {
+      "AlarmName": "High-Response-Time",
+      "AlarmDescription": "Average response time above 500ms",
+      "MetricName": "TargetResponseTime",
+      "Namespace": "AWS/ApplicationELB",
+      "Statistic": "Average",
+      "Dimensions": [
+        {
+          "Name": "LoadBalancer",
+          "Value": "app/starttech-backend-alb/1234567890"
+        }
+      ],
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 0.5,
+      "ComparisonOperator": "GreaterThanThreshold"
+    },
+    {
+      "AlarmName": "5XX-Errors-High",
+      "AlarmDescription": "5XX errors exceed 1% of total requests",
+      "Metrics": [
+        {
+          "Id": "e1",
+          "MetricStat": {
+            "Metric": {
+              "Namespace": "AWS/ApplicationELB",
+              "MetricName": "HTTPCode_Target_5XX_Count",
+              "Dimensions": [
+                {
+                  "Name": "LoadBalancer",
+                  "Value": "app/starttech-backend-alb/1234567890"
+                }
+              ]
+            },
+            "Period": 300,
+            "Stat": "Sum"
+          }
+        },
+        {
+          "Id": "e2",
+          "MetricStat": {
+            "Metric": {
+              "Namespace": "AWS/ApplicationELB",
+              "MetricName": "RequestCount",
+              "Dimensions": [
+                {
+                  "Name": "LoadBalancer",
+                  "Value": "app/starttech-backend-alb/1234567890"
+                }
+              ]
+            },
+            "Period": 300,
+            "Stat": "Sum"
+          }
+        }
+      ],
+      "ThresholdMetricId": "e1",
+      "Expression": "ANOMALY_DETECTION_BAND(e1, 2)"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "app/starttech-backend-alb/1234567890"],
+          [".", "HTTPCode_Target_2XX_Count", ".", "."],
+          [".", "HTTPCode_Target_4XX_Count", ".", "."],
+          [".", "HTTPCode_Target_5XX_Count", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Application Load Balancer - Requests"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "app/starttech-backend-alb/1234567890"]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "stat": "Average",
+        "period": 300,
+        "title": "Response Time (ms)"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", "starttech-backend-asg"],
+          [".", "NetworkIn", ".", "."],
+          [".", "NetworkOut", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "EC2 Instance Metrics"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/ElastiCache", "CPUUtilization", "CacheClusterId", "starttech-redis"],
+          [".", "FreeableMemory", ".", "."],
+          [".", "CacheHits", ".", "."],
+          [".", "CacheMisses", ".", "."]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Redis Cluster Metrics"
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 12,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '/aws/ec2/starttech-backend' | fields @timestamp, @message\n| sort @timestamp desc\n| limit 20",
+        "region": "us-east-1",
+        "title": "Application Logs",
+        "view": "table"
+      }
+    }
+  ]
+}
