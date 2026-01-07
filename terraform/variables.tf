@@ -19,6 +19,7 @@ variable "project_name" {
   type        = string
 }
 
+# VPC variables defination
 variable "public_subnet_cidrs" {
   description = "CIDR blocks for public subnets"
   type        = list(string)
@@ -40,6 +41,7 @@ variable "instance_type" {
   default     = "t3.micro"  
 }
 
+# Autoscaling Group variables defination
 variable "desired_capacity" {
   description = "Desired capacity for the autoscaling group"
   type        = number
@@ -55,13 +57,13 @@ variable "min_size" {
   type        = number
 }
 
-# Cloudwatch
+# Cloudwatch variables defination
 variable "redis_cloudwatch_retention_in_days" {
   description = "Cloudwatch log retention period in days"
   type = number
 }
 
-# Redis Variables defination
+# Redis variables defination
 variable "redis_engine_version" {
   description = "Redis engine version"
   type = string

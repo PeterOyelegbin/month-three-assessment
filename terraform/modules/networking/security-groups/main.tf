@@ -4,15 +4,6 @@ resource "aws_security_group" "alb_sg" {
     description = "Security group for application load balancer"
     vpc_id      = var.vpc_id
 
-    # Allow SSH from anywhere (restrict in production)
-    ingress {
-        description = "SSH from bastion hosts"
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-
     # Allow HTTP from anywhere
     ingress {
         description = "HTTP from anywhere"
@@ -45,19 +36,19 @@ resource "aws_security_group" "alb_sg" {
     }
 }
 
-# Create Private Security Group (for resources in private subnets)
+# Create Instance Security Group
 resource "aws_security_group" "instance_sg" {
     name        = "${var.project_name}-instance-sg"
-    description = "Security group for instance in private subnets"
+    description = "Security group for instances"
     vpc_id      = var.vpc_id
 
-    # Allow SSH from alb security group only
+    # Allow SSH from anywhere (restrict in production)
     ingress {
-        description     = "SSH from alb instances"
+        description     = "SSH from anywhere"
         from_port       = 22
         to_port         = 22
         protocol        = "tcp"
-        security_groups = [aws_security_group.alb_sg.id]
+        cidr_blocks     = ["0.0.0.0/0"]
     }
 
     # Allow HTTP from alb security group only
@@ -67,15 +58,6 @@ resource "aws_security_group" "instance_sg" {
         to_port         = 80
         protocol        = "tcp"
         security_groups = [aws_security_group.alb_sg.id]
-    }
-
-    # Allow all traffic within the private security group
-    ingress {
-        description = "All traffic within private SG"
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        self        = true
     }
 
     # Allow all outbound traffic
@@ -98,13 +80,13 @@ resource "aws_security_group" "redis" {
     description = "Security group for redis"
     vpc_id      = var.vpc_id
 
-    # Allow TCP from alb security group only
+    # Allow TCP from instance security group only
     ingress {
         from_port       = 6379
         to_port         = 6379
         protocol        = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-        # security_groups = [aws_security_group.alb_sg.id] # app/ecs/asg SG
+        cidr_blocks     = ["0.0.0.0/0"]
+        # security_groups = [aws_security_group.instance_sg.id]
     }
 
     # Allow all traffic within the private security group

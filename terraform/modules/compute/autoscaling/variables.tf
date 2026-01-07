@@ -8,11 +8,6 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-# variable "private_subnet_ids" {
-#   description = "Private subnet IDs for autoscaling group"
-#   type        = list(string)
-# }
-
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
@@ -23,8 +18,7 @@ variable "instance_profile_name" {
   type        = string
 }
 
-# Return back to instance_sg_id 
-variable "alb_sg_id" {
+variable "instance_sg_id" {
   description = "Security group ID for the instances"
   type        = string
 }

@@ -44,8 +44,8 @@ module "vpc" {
 module "security_groups" {
     source = "./modules/networking/security-groups"
 
-    vpc_id       = module.vpc.vpc_id
     project_name = var.project_name
+    vpc_id       = module.vpc.vpc_id
 }
 
 module "iam" {

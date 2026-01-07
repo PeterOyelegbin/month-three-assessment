@@ -1,6 +1,6 @@
 # Create instance role
 resource "aws_iam_role" "instance" {
-    name = "${project_name}-instance-role"
+    name = "${var.project_name}-instance-role"
 
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
@@ -24,6 +24,6 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 
 # Create instance profile
 resource "aws_iam_instance_profile" "instance" {
-    name = "${project_name}-ec2-instance-profile"
+    name = "${var.project_name}-ec2-instance-profile"
     role = aws_iam_role.instance.name
 }

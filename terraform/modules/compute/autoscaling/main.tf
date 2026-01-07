@@ -27,7 +27,6 @@ data "aws_ami" "amazon_linux" {
     }
 }
 
-
 # Generate RSA key pair
 resource "tls_private_key" "key_pair" {
     algorithm = "RSA"
@@ -63,17 +62,17 @@ resource "aws_launch_template" "instance" {
     }
 
     network_interfaces {
-        associate_public_ip_address = true # Return back to false
-        security_groups             = [var.alb_sg_id] # Return back to instance_sg_id 
+        associate_public_ip_address = true # Set to false if on private subnet
+        security_groups             = [var.instance_sg_id]
     }
 
-    user_data = base64encode(file("${path.module}/userdata.sh"))
-    # user_data = base64encode(
-    #     templatefile(
-    #         "${path.module}/userdata.sh",
-    #         {project_name = var.project_name}
-    #     )
-    # )
+    # user_data = base64encode(file("${path.module}/userdata.sh"))
+    user_data = base64encode(
+        templatefile(
+            "${path.module}/userdata.sh",
+            {log_group_name = "/aws/ec2/instance"}
+        )
+    )
 
     tag_specifications {
         resource_type = "instance"
