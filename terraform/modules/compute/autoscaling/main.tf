@@ -70,7 +70,7 @@ resource "aws_launch_template" "instance" {
     user_data = base64encode(
         templatefile(
             "${path.module}/userdata.sh",
-            {log_group_name = "/aws/ec2/instance"}
+            {LOG_GROUP_NAME = "/aws/ec2/instance"}
         )
     )
 

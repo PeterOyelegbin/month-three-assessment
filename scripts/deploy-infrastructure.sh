@@ -3,7 +3,6 @@
 set -euo pipefail
 
 # Set environment
-# APP_DIR="../terraform"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform"
 
 echo "Initializing Terraform..."

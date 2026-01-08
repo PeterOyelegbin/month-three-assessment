@@ -16,7 +16,7 @@ resource "aws_iam_role" "instance" {
     })
 }
 
-# Attache policy to IAM role
+# Attach policy to IAM role
 resource "aws_iam_role_policy_attachment" "ssm" {
     role       = aws_iam_role.instance.name
     policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"

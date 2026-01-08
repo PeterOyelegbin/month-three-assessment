@@ -3,6 +3,11 @@ output "load_balancer_dns_name" {
   value       = module.load_balancer.alb_dns_name
 }
 
+output "redis_primary_endpoint" {
+  description = "Redis primary endpoint"
+  value       = module.redis.primary_endpoint_address
+}
+
 output "distribution_id" {
   description = "Cloudfront distribution id"
   value = module.cloudfront.distribution_id

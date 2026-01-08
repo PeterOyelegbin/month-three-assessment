@@ -62,8 +62,7 @@ module "autoscaling" {
     # private_subnet_ids = module.vpc.private_subnet_ids
     instance_type      = var.instance_type
     instance_profile_name = module.iam.instance_profile_name
-    alb_sg_id          = module.security_groups.alb_sg_id
-    # instance_sg_id     = module.security_groups.instance_sg_id
+    instance_sg_id     = module.security_groups.instance_sg_id
     desired_capacity   = var.desired_capacity
     max_size           = var.max_size
     min_size           = var.min_size

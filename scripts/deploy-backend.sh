@@ -3,12 +3,13 @@
 set -euo pipefail
 
 # Set environment
-APP_DIR="../Server/MuchToDo"
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../Server/MuchToDo"
 DOCKER_REPO_NAME="peteroyelegbin"
 IMAGE_NAME="starttech-backend"
 IMAGE_TAG="latest"
-SERVERS=("ec2-1-public-ip" "ec2-2-public-ip") # Replace with real IPs
-KEY_PAIR="~/.ssh/my-key.pem"
+SSH_OPTS="-o StrictHostKeyChecking=accept-new"
+KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/start-tech-key.pem"
+SERVERS=("3.237.236.245" "3.88.115.48") # Replace with real IPs
 SERVER_USERNAME="ec2-user"
 
 
@@ -24,10 +25,12 @@ docker push "$DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG"
 # ********** Deploy to remote servers **********
 for SERVER in "${SERVERS[@]}"; do
     echo "Copying .env to $SERVER..."
-    scp -i "$KEY_PAIR" "$APP_DIR/.env" "$SERVER_USERNAME@$SERVER:/app/.env"
+    scp $SSH_OPTS -i "$KEY_PAIR" "$APP_DIR/.env" \
+        "$SERVER_USERNAME@$SERVER:/home/$SERVER_USERNAME/.env"
 
     echo "Deploying to $SERVER..."
-    ssh -i "$KEY_PAIR" "$SERVER_USERNAME@$SERVER" bash -s <<EOF
+    ssh $SSH_OPTS -i "$KEY_PAIR" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+    "$SERVER_USERNAME@$SERVER" bash -s <<EOF
         set -euo pipefail
 
         echo "Pulling Docker image..."

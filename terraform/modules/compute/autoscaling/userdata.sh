@@ -13,12 +13,14 @@ sudo yum install -y amazon-cloudwatch-agent jq
 sudo systemctl start docker
 sudo systemctl enable docker
 
+sudo usermod -aG docker ec2-user
+
 # Create application directory
 sudo mkdir -p /app
-cd /app
+sudo chown ec2-user:ec2-user /app
 
 # Write CloudWatch agent config
-sudo cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+sudo tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json > /dev/null <<EOF
 {
   "agent": {
     "metrics_collection_interval": 60,
@@ -30,13 +32,13 @@ sudo cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.j
         "collect_list": [
           {
             "file_path": "/var/log/docker",
-            "log_group_name": "${log_group_name}",
+            "log_group_name": "${LOG_GROUP_NAME}",
             "log_stream_name": "{instance_id}/docker",
             "timezone": "UTC"
           },
           {
             "file_path": "/app/application.log",
-            "log_group_name": "${log_group_name}",
+            "log_group_name": "${LOG_GROUP_NAME}",
             "log_stream_name": "{instance_id}/application",
             "timezone": "UTC"
           }
@@ -46,20 +48,13 @@ sudo cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.j
   },
   "metrics": {
     "metrics_collected": {
-      "statsd": {},
       "disk": {
-        "measurement": [
-          "used_percent"
-        ],
-        "metrics_collection_interval": 60,
-        "resources": [
-          "*"
-        ]
+        "measurement": ["used_percent"],
+        "resources": ["*"],
+        "metrics_collection_interval": 60
       },
       "mem": {
-        "measurement": [
-          "mem_used_percent"
-        ],
+        "measurement": ["mem_used_percent"],
         "metrics_collection_interval": 60
       }
     }
