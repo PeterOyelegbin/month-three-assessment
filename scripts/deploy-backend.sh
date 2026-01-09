@@ -9,7 +9,7 @@ IMAGE_NAME="starttech-backend"
 IMAGE_TAG="latest"
 SSH_OPTS="-o StrictHostKeyChecking=accept-new"
 KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/start-tech-key.pem"
-SERVERS=("3.237.236.245" "3.88.115.48") # Replace with real IPs
+SERVERS=("54.172.248.25" "44.211.245.191") # Replace with real IPs
 SERVER_USERNAME="ec2-user"
 
 
@@ -26,7 +26,7 @@ docker push "$DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG"
 for SERVER in "${SERVERS[@]}"; do
     echo "Copying .env to $SERVER..."
     scp $SSH_OPTS -i "$KEY_PAIR" "$APP_DIR/.env" \
-        "$SERVER_USERNAME@$SERVER:/home/$SERVER_USERNAME/.env"
+        "$SERVER_USERNAME@$SERVER:/app/.env"
 
     echo "Deploying to $SERVER..."
     ssh $SSH_OPTS -i "$KEY_PAIR" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \

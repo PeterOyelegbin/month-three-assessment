@@ -5,7 +5,7 @@ output "load_balancer_dns_name" {
 
 output "redis_primary_endpoint" {
   description = "Redis primary endpoint"
-  value       = module.redis.primary_endpoint_address
+  value       = module.redis.redis_primary_endpoint
 }
 
 output "distribution_id" {
