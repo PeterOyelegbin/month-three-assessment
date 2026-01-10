@@ -105,3 +105,14 @@ resource "aws_autoscaling_group" "auto-scaling" {
         propagate_at_launch = true
     }
 }
+
+# Data source to get instance information from the ASG
+data "aws_instances" "asg_instances" {
+    instance_tags = {
+        "aws:autoscaling:groupName" = aws_autoscaling_group.auto-scaling.name
+    }
+    
+    depends_on = [
+        aws_autoscaling_group.auto-scaling
+    ]
+}

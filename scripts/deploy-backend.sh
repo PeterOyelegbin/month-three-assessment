@@ -8,8 +8,8 @@ DOCKER_REPO_NAME="peteroyelegbin"
 IMAGE_NAME="starttech-backend"
 IMAGE_TAG="latest"
 SSH_OPTS="-o StrictHostKeyChecking=accept-new"
-KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/start-tech-key.pem"
-SERVERS=("54.172.248.25" "44.211.245.191") # Replace with real IPs
+KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/starttech-key.pem"
+SERVERS=("98.92.183.121" "44.202.218.145") # Replace with real IPs
 SERVER_USERNAME="ec2-user"
 
 

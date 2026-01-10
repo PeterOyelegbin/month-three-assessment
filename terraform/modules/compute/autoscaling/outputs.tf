@@ -1,0 +1,5 @@
+# Output instance public IPs
+output "instance_public_ips" {
+  description = "Public IP addresses of instances in the Auto Scaling Group"
+  value       = data.aws_instances.asg_instances.public_ips
+}

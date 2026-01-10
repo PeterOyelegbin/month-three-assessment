@@ -4,8 +4,8 @@ set -euo pipefail
 
 # Set environment
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../Client"
-PROJECT_NAME=start-tech
-DISTRIBUTION_ID=E1UX2ECYZRE4TD
+PROJECT_NAME=starttech
+DISTRIBUTION_ID=E5U8IALRX8Q40
 
 echo "Building the app..."
 cd "$APP_DIR"

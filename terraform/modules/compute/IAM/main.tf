@@ -14,12 +14,22 @@ resource "aws_iam_role" "instance" {
             }
         ]
     })
+
+    tags = {
+        Name      = "${var.project_name}-instance-role"
+        ManagedBy = "terraform"
+    }
 }
 
 # Attach policy to IAM role
 resource "aws_iam_role_policy_attachment" "ssm" {
     role       = aws_iam_role.instance.name
     policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch" {
+    role       = aws_iam_role.instance.name
+    policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
 # Create instance profile
