@@ -1,27 +1,29 @@
 #!/bin/bash
 
-set -euo pipefail
+set -e
 
 # Update server
-sudo yum update -y
+yum update -y
 
 # Install dependencies
-sudo amazon-linux-extras install -y docker
-sudo yum install -y amazon-cloudwatch-agent jq
+amazon-linux-extras enable nginx1
+amazon-linux-extras install -y docker
+yum install -y nginx amazon-cloudwatch-agent jq
 
 # Start Docker
-sudo systemctl start docker
-sudo systemctl enable docker
+systemctl start nginx
+systemctl start docker
+systemctl enable docker
 
-sudo usermod -aG docker ec2-user
+usermod -aG docker ec2-user
 
 # Create application directory
-sudo mkdir -p /app
-sudo chown ec2-user:ec2-user /app
+mkdir -p /app
+chown ec2-user:ec2-user /app
 
 # Write CloudWatch agent config
-sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
-sudo tee amazon-cloudwatch-agent.json > /dev/null <<EOF
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+tee /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json > /dev/null <<EOF
 {
   "agent": {
     "metrics_collection_interval": 60,
@@ -63,7 +65,5 @@ sudo tee amazon-cloudwatch-agent.json > /dev/null <<EOF
 }
 EOF
 
-sudo mv amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/
-
 # Start CloudWatch agent
-sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json

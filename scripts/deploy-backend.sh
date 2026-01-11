@@ -9,7 +9,7 @@ IMAGE_NAME="starttech-backend"
 IMAGE_TAG="latest"
 SSH_OPTS="-o StrictHostKeyChecking=accept-new"
 KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/starttech-key.pem"
-SERVERS=("98.92.183.121" "44.202.218.145") # Replace with real IPs
+SERVERS=("98.94.51.57" "13.219.202.224") # Replace with real IPs
 SERVER_USERNAME="ec2-user"
 
 
@@ -38,6 +38,9 @@ for SERVER in "${SERVERS[@]}"; do
 
         echo "Stopping old container if exists..."
         sudo docker rm -f backend || true
+
+        echo "Stopping nginx..."
+        sudo systemctl stop nginx || true
 
         echo "Running new container..."
         sudo docker run -d --name backend --restart always -p 80:8080 \

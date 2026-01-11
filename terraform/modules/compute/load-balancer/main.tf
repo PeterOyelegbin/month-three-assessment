@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "target-group" {
     health_check {
         enabled             = true
         interval            = 60
-        path                = "/health"
+        path                = "/"
         port                = "traffic-port"
         protocol            = "HTTP"
         timeout             = 10
