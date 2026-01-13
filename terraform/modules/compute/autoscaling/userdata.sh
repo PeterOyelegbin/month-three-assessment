@@ -6,9 +6,9 @@ set -e
 yum update -y
 
 # Install dependencies
-amazon-linux-extras enable nginx1
+amazon-linux-extras enable nginx1 redis6
 amazon-linux-extras install -y docker
-yum install -y nginx amazon-cloudwatch-agent jq
+yum install -y nginx amazon-cloudwatch-agent jq redis
 
 # Start Docker
 systemctl start nginx

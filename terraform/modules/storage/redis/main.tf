@@ -27,7 +27,7 @@ resource "aws_elasticache_replication_group" "redis" {
     security_group_ids            = [var.redis_sg_id]
 
     at_rest_encryption_enabled    = true
-    transit_encryption_enabled    = true
+    transit_encryption_enabled    = false
 
     snapshot_retention_limit      = var.redis_snapshot_retention_limit
     snapshot_window               = var.redis_snapshot_window

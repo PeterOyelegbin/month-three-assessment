@@ -15,7 +15,7 @@ terraform {
     }
 
     # backend "s3" {
-    #     bucket         = "starttech-tf-state"
+    #     bucket         = "starttech-tfstate"
     #     key            = "production/terraform.tfstate"
     #     region         = "us-east-1"
     #     encrypt        = true
@@ -104,7 +104,7 @@ module "redis" {
     source = "./modules/storage/redis"
 
     project_name                   = var.project_name
-    private_subnet_ids             = module.vpc.public_subnet_ids
+    private_subnet_ids             = module.vpc.private_subnet_ids
     redis_sg_id                    = module.security_groups.redis_sg_id
     redis_engine_version           = var.redis_engine_version
     redis_node_type                = var.redis_node_type

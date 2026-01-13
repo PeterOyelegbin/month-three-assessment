@@ -1,16 +1,17 @@
 name: Backend CI/CD
 on:
   push:
-    branches: [dev, stagging]
-    paths: ['Server/**']
+    branches: [main, stagging]
+    paths:
+      - 'Server/**'
+      - '.github/workflows/backend-cicd.yml'
   pull_request:
     branches: [dev]
     paths: ['Server/**']
   workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: starttech-backend
+  DOCKER_REPOSITORY: starttech-backend
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: [1.20.x]
+        go-version: [1.25.x]
 
     steps:
     - uses: actions/checkout@v3
@@ -60,98 +61,98 @@ jobs:
         go install github.com/securego/gosec/v2/cmd/gosec@latest
         gosec ./...
 
-  build:
-    needs: test
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
+  # build:
+  #   needs: test
+  #   if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./backend
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+  #   - name: Configure AWS Credentials
+  #     uses: aws-actions/configure-aws-credentials@v2
+  #     with:
+  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+  #   - name: Login to Amazon ECR
+  #     id: login-ecr
+  #     uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build Docker image
-      run: |
-        docker build \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
-          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
-          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
-          .
+  #   - name: Build Docker image
+  #     run: |
+  #       docker build \
+  #         --build-arg BUILDKIT_INLINE_CACHE=1 \
+  #         -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+  #         -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
+  #         .
 
-    - name: Scan Docker image
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+  #   - name: Scan Docker image
+  #     uses: aquasecurity/trivy-action@master
+  #     with:
+  #       image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
+  #       format: 'sarif'
+  #       output: 'trivy-results.sarif'
 
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
+  #   - name: Upload Trivy scan results
+  #     uses: github/codeql-action/upload-sarif@v2
+  #     if: always()
+  #     with:
+  #       sarif_file: 'trivy-results.sarif'
 
-    - name: Push Docker image
-      if: success()
-      run: |
-        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+  #   - name: Push Docker image
+  #     if: success()
+  #     run: |
+  #       docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+  #       docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-  deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+  # deploy:
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+  #   steps:
+  #   - name: Configure AWS Credentials
+  #     uses: aws-actions/configure-aws-credentials@v2
+  #     with:
+  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       aws-region: ${{ env.AWS_REGION }}
 
-    - name: Update launch template
-      run: |
-        LATEST_LT_VERSION=$(aws ec2 describe-launch-template-versions \
-          --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
-          --query 'LaunchTemplateVersions[0].VersionNumber' \
-          --output text)
+  #   - name: Update launch template
+  #     run: |
+  #       LATEST_LT_VERSION=$(aws ec2 describe-launch-template-versions \
+  #         --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
+  #         --query 'LaunchTemplateVersions[0].VersionNumber' \
+  #         --output text)
 
-        aws ec2 create-launch-template-version \
-          --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
-          --source-version $LATEST_LT_VERSION \
-          --version-description "Deploy ${{ env.IMAGE_TAG }}" \
-          --launch-template-data "{\"UserData\":\"$(base64 -w0 backend/userdata.sh)\"}"
+  #       aws ec2 create-launch-template-version \
+  #         --launch-template-id ${{ secrets.LAUNCH_TEMPLATE_ID }} \
+  #         --source-version $LATEST_LT_VERSION \
+  #         --version-description "Deploy ${{ env.IMAGE_TAG }}" \
+  #         --launch-template-data "{\"UserData\":\"$(base64 -w0 backend/userdata.sh)\"}"
 
-    - name: Start instance refresh
-      run: |
-        aws autoscaling start-instance-refresh \
-          --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
-          --strategy Rolling \
-          --preferences '{"InstanceWarmup": 300, "MinHealthyPercentage": 90}'
+  #   - name: Start instance refresh
+  #     run: |
+  #       aws autoscaling start-instance-refresh \
+  #         --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
+  #         --strategy Rolling \
+  #         --preferences '{"InstanceWarmup": 300, "MinHealthyPercentage": 90}'
 
-    - name: Run smoke tests
-      run: |
-        ./scripts/health-check.sh ${{ secrets.ALB_DNS_NAME }}
+  #   - name: Run smoke tests
+  #     run: |
+  #       ./scripts/health-check.sh ${{ secrets.ALB_DNS_NAME }}
 
-    - name: Notify deployment
-      if: success()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: deployments
-        SLACK_COLOR: good
-        SLACK_TITLE: "Backend Deployed Successfully"
-        SLACK_MESSAGE: "Backend version ${{ env.IMAGE_TAG }} deployed to production"
+  #   - name: Notify deployment
+  #     if: success()
+  #     uses: rtCamp/action-slack-notify@v2
+  #     env:
+  #       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  #       SLACK_CHANNEL: deployments
+  #       SLACK_COLOR: good
+  #       SLACK_TITLE: "Backend Deployed Successfully"
+  #       SLACK_MESSAGE: "Backend version ${{ env.IMAGE_TAG }} deployed to production"

@@ -1,6 +1,7 @@
 # Main bucket configuration
 resource "aws_s3_bucket" "frontend" {
-    bucket = "${var.project_name}-frontend-bkt"
+    bucket        = "${var.project_name}-frontend-bkt"
+    force_destroy = true
 
     tags = {
         Name      = "${var.project_name}-frontend-bkt"

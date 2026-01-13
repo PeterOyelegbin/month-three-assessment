@@ -9,8 +9,9 @@ IMAGE_NAME="starttech-backend"
 IMAGE_TAG="latest"
 SSH_OPTS="-o StrictHostKeyChecking=accept-new"
 KEY_PAIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../terraform/starttech-key.pem"
-SERVERS=("98.94.51.57" "13.219.202.224") # Replace with real IPs
 SERVER_USERNAME="ec2-user"
+SERVERS=("44.201.194.182" "44.203.205.149") # Replace with real IPs
+REDIS_ENDPOINT="starttech-redis.d2jdsa.ng.0001.use1.cache.amazonaws.com" # Replace with real URL
 
 
 # ********** Build and push Docker image **********
@@ -38,6 +39,9 @@ for SERVER in "${SERVERS[@]}"; do
 
         echo "Stopping old container if exists..."
         sudo docker rm -f backend || true
+
+        echo "Testing redis endpiont..."
+        redis-cli -h $REDIS_ENDPOINT -p 6379 PING
 
         echo "Stopping nginx..."
         sudo systemctl stop nginx || true

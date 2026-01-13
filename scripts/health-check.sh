@@ -3,8 +3,8 @@
 set -euo pipefail
 
 # Set environment
-ALB_DNS_NAME="starttech-alb-336762615.us-east-1.elb.amazonaws.com"
-CDN_URL="d1ug4tzn3e6rjf.cloudfront.net"
+ALB_DNS_NAME="starttech-alb-990511533.us-east-1.elb.amazonaws.com"
+CDN_URL="d18to9jw9incu9.cloudfront.net"
 
 echo "Performing health check on the backend application..."
 HTTP_STATUS_ALB=$(curl -o /dev/null -s -w "%{http_code}\n" "http://$ALB_DNS_NAME/health")

@@ -85,8 +85,7 @@ resource "aws_security_group" "redis" {
         from_port       = 6379
         to_port         = 6379
         protocol        = "tcp"
-        cidr_blocks     = ["0.0.0.0/0"]
-        # security_groups = [aws_security_group.instance_sg.id]
+        security_groups = [aws_security_group.instance_sg.id]
     }
 
     # Allow all traffic within the private security group

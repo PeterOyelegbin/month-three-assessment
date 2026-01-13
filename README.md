@@ -12,7 +12,7 @@ This repository contains a full-stack application with:
 - AWS Account with appropriate permissions
 - GitHub repository with Actions enabled
 - Terraform 1.3.0 or higher
-- Node.js 18.x
+- Node.js 20.x
 - Go 1.20.x
 - Docker
 
@@ -32,8 +32,8 @@ This repository contains a full-stack application with:
 3. **Configure Application Secrets**
    Add the following secrets to your GitHub repository:
    - `MONGO_URI`: MongoDB Atlas connection string
+   - `REDIS_URI`: Elastic cache redis primary endpoint
    - `REACT_APP_API_URL`: Frontend API endpoint
-   - `SLACK_WEBHOOK`: Slack webhook for notifications
 
 4. **Deploy Infrastructure**
    ```bash
@@ -47,38 +47,42 @@ This repository contains a full-stack application with:
    ```
 
 5. **Deploy Applications**
-   The CI/CD pipelines will automatically deploy on push to main branch.
+   The CI/CD pipelines will automatically deploy on push to terraform directory in main branch.
+
+---
 
 ## Repository Structure
-
-### Infrastructure (`starttech-infra/`)
+1. Infrastructure (`starttech-infra/`)
 - `terraform/`: Infrastructure as Code using Terraform
 - `.github/workflows/`: GitHub Actions workflows
 - `scripts/`: Deployment and management scripts
 - `monitoring/`: CloudWatch dashboards and alarms
 
-### Application (`starttech-application/`)
+2. Application (`starttech-application/`)
 - `frontend/`: React application
 - `backend/`: Golang API
 - `.github/workflows/`: CI/CD pipelines
 - `scripts/`: Application deployment scripts
 
+---
+
 ## CI/CD Pipelines
+1. Frontend Pipeline
+   - **Test**: Lint, unit tests, security audit
+   - **Build**: Create production bundle
+   - **Deploy**: Upload to S3, invalidate CloudFront cache
 
-### Frontend Pipeline
-1. **Test**: Lint, unit tests, security audit
-2. **Build**: Create production bundle
-3. **Deploy**: Upload to S3, invalidate CloudFront cache
+2. Backend Pipeline
+   - **Test**: Lint, unit tests, security scan
+   - **Build**: Build Docker image, security scan
+   - **Deploy**: Update ASG, rolling deployment, smoke tests
 
-### Backend Pipeline
-1. **Test**: Lint, unit tests, security scan
-2. **Build**: Build Docker image, security scan
-3. **Deploy**: Update ASG, rolling deployment, smoke tests
+3. Infrastructure Pipeline
+   - **Plan**: Terraform plan for review
+   - **Apply**: Deploy infrastructure changes
+   - **Update**: Update environment variables
 
-### Infrastructure Pipeline
-1. **Plan**: Terraform plan for review
-2. **Apply**: Deploy infrastructure changes
-3. **Update**: Update environment variables
+---
 
 ## Monitoring
 
@@ -95,25 +99,25 @@ This repository contains a full-stack application with:
 - Instance health checks
 
 ## Security
+1. IAM Policies
+   - Least privilege access for EC2 instances
+   - S3 bucket policies for CloudFront access
+   - ECR access for Docker images
 
-### IAM Policies
-- Least privilege access for EC2 instances
-- S3 bucket policies for CloudFront access
-- ECR access for Docker images
+2. Security Scanning
+   - npm audit for frontend dependencies
+   - gosec for Go code analysis
+   - Trivy for Docker image scanning
 
-### Security Scanning
-- npm audit for frontend dependencies
-- gosec for Go code analysis
-- Trivy for Docker image scanning
+3. Network Security
+   - Security groups with minimum required access
+   - VPC with public and private subnets
+   - NAT gateways for outbound traffic
 
-### Network Security
-- Security groups with minimum required access
-- VPC with public and private subnets
-- NAT gateways for outbound traffic
+---
 
 ## Operations
-
-### Health Checks
+1. Health Checks
 ```bash
 # Check application health
 ./scripts/health-check.sh <alb-dns-name>
@@ -125,7 +129,7 @@ aws autoscaling describe-auto-scaling-groups --auto-scaling-group-name starttech
 aws logs tail /aws/ec2/starttech-backend --follow
 ```
 
-### Rollback Procedures
+2. Rollback Procedures
 ```bash
 # Frontend rollback
 aws s3 sync s3://starttech-frontend-backup/current/ s3://starttech-frontend/ --delete
@@ -135,51 +139,49 @@ aws s3 sync s3://starttech-frontend-backup/current/ s3://starttech-frontend/ --d
 ```
 
 ## Troubleshooting
-
 Common issues and solutions are documented in `RUNBOOK.md`.
 
 ## Support
-
 For issues or questions:
 1. Check the troubleshooting guide
 2. Review CloudWatch logs
 3. Contact the DevOps team
-```
+
+---
 
 ## Key Features Implemented
+1. **Infrastructure as Code**
+   - Modular Terraform configuration
+   - Auto Scaling Groups with scaling policies
+   - Application Load Balancer with health checks
+   - S3 bucket with CloudFront CDN
+   - ElastiCache Redis cluster
+   - Comprehensive security groups
 
-### 1. **Infrastructure as Code**
-- Modular Terraform configuration
-- Auto Scaling Groups with scaling policies
-- Application Load Balancer with health checks
-- S3 bucket with CloudFront CDN
-- ElastiCache Redis cluster
-- Comprehensive security groups
+2. **CI/CD Pipelines**
+   - GitHub Actions workflows for frontend, backend, and infrastructure
+   - Automated testing and security scanning
+   - Docker image building and vulnerability scanning
+   - Rolling deployments with health checks
+   - CloudFront cache invalidation
 
-### 2. **CI/CD Pipelines**
-- GitHub Actions workflows for frontend, backend, and infrastructure
-- Automated testing and security scanning
-- Docker image building and vulnerability scanning
-- Rolling deployments with health checks
-- CloudFront cache invalidation
+3. **Monitoring and Observability**
+   - CloudWatch dashboards for all components
+   - Application logging to CloudWatch Logs
+   - Performance metrics and alarms
+   - Health check endpoints
 
-### 3. **Monitoring and Observability**
-- CloudWatch dashboards for all components
-- Application logging to CloudWatch Logs
-- Performance metrics and alarms
-- Health check endpoints
+4. **Security Best Practices**
+   - IAM roles with least privilege
+   - Security group minimum access
+   - Automated vulnerability scanning
+   - Secrets management via GitHub Secrets
+   - Encrypted S3 buckets and EBS volumes
 
-### 4. **Security Best Practices**
-- IAM roles with least privilege
-- Security group minimum access
-- Automated vulnerability scanning
-- Secrets management via GitHub Secrets
-- Encrypted S3 buckets and EBS volumes
-
-### 5. **High Availability**
-- Multi-AZ deployment
-- Auto Scaling with health checks
-- Load balancer with target groups
-- Redis cluster with multiple nodes
+5. **High Availability**
+   - Multi-AZ deployment
+   - Auto Scaling with health checks
+   - Load balancer with target groups
+   - Redis cluster with multiple nodes
 
 This implementation provides a production-ready CI/CD pipeline that automates the entire deployment process while maintaining security, reliability, and scalability best practices.
