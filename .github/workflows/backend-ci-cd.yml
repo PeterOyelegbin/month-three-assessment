@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./Server
+        working-directory: ./Server/MuchToDo
 
     strategy:
       matrix:
@@ -53,8 +53,8 @@ jobs:
       with:
         name: test-results
         path: |
-          Server/coverage.out
-          Server/coverage.html
+          Server/MuchToDo/coverage.out
+          Server/MuchToDo/coverage.html
 
     - name: Run security scan
       run: |
