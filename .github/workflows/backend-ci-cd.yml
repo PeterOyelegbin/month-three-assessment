@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./Server
 
     strategy:
       matrix:
@@ -53,8 +53,8 @@ jobs:
       with:
         name: test-results
         path: |
-          backend/coverage.out
-          backend/coverage.html
+          Server/coverage.out
+          Server/coverage.html
 
     - name: Run security scan
       run: |
