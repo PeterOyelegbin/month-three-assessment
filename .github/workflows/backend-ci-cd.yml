@@ -60,7 +60,7 @@ jobs:
           Server/MuchToDo/coverage.html
 
     - name: Run security scan
-      uses: securego/gosec@v2
+      uses: securego/gosec@v2.19.0
       with:
         args: ./...
         working-directory: ./Server/MuchToDo
