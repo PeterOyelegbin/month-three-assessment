@@ -32,6 +32,8 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: Server/MuchToDo/go.sum
 
     - name: Install dependencies
       run: go mod download
@@ -40,7 +42,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         working-directory: ./Server/MuchToDo
-        version: latest
+        version: v1.64.8
 
     - name: Run unit tests
       run: go test -v -race ./... -coverprofile=coverage.out
@@ -58,9 +60,11 @@ jobs:
           Server/MuchToDo/coverage.html
 
     - name: Run security scan
-      run: |
-        go install github.com/securego/gosec/v2/cmd/gosec@latest
-        gosec ./...
+      uses: securego/gosec@v2
+      with:
+        args: ./...
+        working-directory: ./Server/MuchToDo
+
 
   # build:
   #   needs: test
