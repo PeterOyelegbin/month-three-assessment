@@ -18,6 +18,9 @@ jobs:
   test-and-scan:
     name: Test, Lint & Scan
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Server/MuchToDo
 
     steps:
       - name: Checkout source
