@@ -37,13 +37,13 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      # # Code Quality Checks
-      # - name: Run golangci-lint
-      #   uses: golangci/golangci-lint-action@v6
-      #   with:
-      #     version: v1.64.8
-      #     args: --timeout=5m
-      #     working-directory: Server/MuchToDo
+      # Code Quality Checks
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          args: --timeout=5m
+          working-directory: Server/MuchToDo
 
       - name: Run unit tests
         run: |
