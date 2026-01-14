@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-1
+  # AWS_REGION: us-east-1
   S3_BUCKET: starttech-frontend-bkt
   # CLOUDFRONT_DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
@@ -99,57 +99,52 @@ jobs:
         with:
           name: frontend-build
           path: Client/dist
-          
 
-  # deploy:
-  #   needs: build
-  #   if: github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v3
+  # Build pipeline
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
 
-  #   - name: Download build artifact
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: frontend-build
-  #       path: dist
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-  #   - name: Configure AWS Credentials
-  #     uses: aws-actions/configure-aws-credentials@v2
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ env.AWS_REGION }}
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: dist
 
-  #   - name: Deploy to S3
-  #     run: |
-  #       aws s3 sync ./dist s3://${{ env.S3_BUCKET }} \
-  #         --delete \
-  #         --cache-control "public, max-age=31536000" \
-  #         --exclude "*.html" \
-  #         --exclude "*.json" \
-  #         --exclude "*.xml"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
 
-  #       aws s3 sync ./dist s3://${{ env.S3_BUCKET }} \
-  #         --delete \
-  #         --cache-control "public, max-age=0, must-revalidate" \
-  #         --include "*.html" \
-  #         --include "*.json" \
-  #         --include "*.xml"
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./dist s3://${{ env.S3_BUCKET }} --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "*.html" --exclude "*.json" --exclude "*.xml"
 
-  #   - name: Invalidate CloudFront cache
-  #     run: |
-  #       aws cloudfront create-invalidation \
-  #         --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} \
-  #         --paths "/*"
+          aws s3 sync ./dist s3://${{ env.S3_BUCKET }} --delete \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --include "*.html" --include "*.json" --include "*.xml"
 
-  #   - name: Notify deployment
-  #     if: success()
-  #     uses: rtCamp/action-slack-notify@v2
-  #     env:
-  #       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-  #       SLACK_CHANNEL: deployments
-  #       SLACK_COLOR: good
-  #       SLACK_TITLE: "Frontend Deployed Successfully"
-  #       SLACK_MESSAGE: "Frontend deployed to ${{ env.S3_BUCKET }}"
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+      # - name: Notify deployment
+      #   if: success()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      #     SLACK_CHANNEL: deployments
+      #     SLACK_COLOR: good
+      #     SLACK_TITLE: "Frontend Deployed Successfully"
+      #     SLACK_MESSAGE: "Frontend deployed to ${{ env.S3_BUCKET }}"
