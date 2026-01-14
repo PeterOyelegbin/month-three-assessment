@@ -2,7 +2,7 @@ name: Infrastructure Deployment
 
 on:
   push:
-    branches: [dev, stagging]
+    branches: [main, stagging]
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-cicd.yml'
@@ -32,7 +32,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ var.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Terraform Init
         run: terraform init
@@ -70,7 +70,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ var.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Download Plan
         uses: actions/download-artifact@v4
