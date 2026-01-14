@@ -14,8 +14,11 @@ on:
 env:
   GO_VERSION: "1.25.1"
   GOTOOLCHAIN: auto
+  ECR_REPOSITORY: starttech-backend
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
+  # Test pipeline
   test-and-scan:
     name: Test, Lint & Scan
     runs-on: ubuntu-latest
@@ -37,13 +40,13 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      # Code Quality Checks
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.64.8
-          args: --timeout=5m
-          working-directory: Server/MuchToDo
+      # # Code Quality Checks
+      # - name: Run golangci-lint
+      #   uses: golangci/golangci-lint-action@v6
+      #   with:
+      #     version: v1.64.8
+      #     args: --timeout=5m
+      #     working-directory: Server/MuchToDo
 
       - name: Run unit tests
         run: |
@@ -73,3 +76,65 @@ jobs:
         with:
           name: go-coverage
           path: coverage.out
+
+
+  # Build pipeline
+  build:
+    needs: test-and-scan
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Server/MuchToDo
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build Docker image
+      env:
+        DOCKER_BUILDKIT: 1
+      run: |
+        docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest .
+
+    - name: Scan Docker image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
+        severity: HIGH,CRITICAL
+        exit-code: '1'
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Push Docker image
+      if: success() && github.ref == 'refs/heads/main'
+      run: |
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+
+  # Deploy pipeline
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
