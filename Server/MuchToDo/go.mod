@@ -1,6 +1,5 @@
 module github.com/Innocent9712/much-to-do/Server/MuchToDo
 
-<!-- go 1.25.1 -->
 go 1.22
 
 require (
