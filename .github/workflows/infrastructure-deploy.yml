@@ -1,7 +1,8 @@
 name: Infrastructure Deployment
+
 on:
   push:
-    branches: [dev]
+    branches: [dev, stagging]
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-cicd.yml'
@@ -18,36 +19,36 @@ jobs:
         working-directory: ./terraform
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ var.AWS_REGION }}
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Terraform Validate
+        run: terraform validate
 
-    - name: Terraform Plan
-      run: terraform plan -out=tfplan
-      id: plan
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        id: plan
 
-    - name: Upload Plan
-      uses: actions/upload-artifact@v3
-      with:
-        name: tfplan
-        path: terraform/tfplan
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
 
   terraform-apply:
     needs: terraform-plan
@@ -58,30 +59,30 @@ jobs:
         working-directory: ./terraform
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ var.AWS_REGION }}
 
-    - name: Download Plan
-      uses: actions/download-artifact@v3
-      with:
-        name: tfplan
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
 
-    - name: Terraform Apply
-      run: terraform apply tfplan
+      - name: Terraform Apply
+        run: terraform apply tfplan
 
-    - name: Output Terraform Data
-      run: terraform output -json > outputs.json
+      - name: Output Terraform Data
+        run: terraform output -json > outputs.json
 
-    - name: Update GitHub Secrets
-      run: |
-        python3 scripts/update_env_vars.py
+      - name: Update GitHub Secrets
+        run: |
+          python3 scripts/update_env_vars.py

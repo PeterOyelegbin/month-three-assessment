@@ -2,7 +2,7 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [main, stagging]
+    branches: [dev, stagging]
     paths:
       - 'Client/**'
       - '.github/workflows/frontend-ci-cd.yml'
@@ -12,7 +12,6 @@ on:
   workflow_dispatch:
 
 env:
-  # AWS_REGION: us-east-1
   S3_BUCKET: starttech-frontend-bkt
   # CLOUDFRONT_DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
