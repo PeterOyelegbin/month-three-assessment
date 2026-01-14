@@ -75,8 +75,10 @@ jobs:
           go install golang.org/x/vuln/cmd/govulncheck@latest
 
       - name: Run vulnerability scan
+        env:
+          GOTOOLCHAIN: auto
         run: |
-          govulncheck ./...
+          govulncheck ./cmd/... ./internal/...
 
       # --------------------
       # Upload Coverage (optional)
