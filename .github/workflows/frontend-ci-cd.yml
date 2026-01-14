@@ -18,7 +18,7 @@ env:
 
 jobs:
   # Test pipeline
-  test:
+  test-and-scan:
     name: Test, Lint & Scan
     runs-on: ubuntu-latest
     defaults:
@@ -67,36 +67,39 @@ jobs:
             --scan ./Client
             --out ./reports
 
-  # build:
-  #   needs: test
-  #   if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ./Client
 
-  #   steps:
-  #   - uses: actions/checkout@v3
+  # Build pipeline
+  build:
+    needs: test-and-scan
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Client
 
-  #   - name: Use Node.js 20.x
-  #     uses: actions/setup-node@v3
-  #     with:
-  #       node-version: '20.x'
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-  #   - name: Install dependencies
-  #     run: npm ci
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
 
-  #   - name: Build application
-  #     run: npm run build
-  #     env:
-  #       REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-  #       REACT_APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      - name: Install dependencies
+        run: npm ci
 
-  #   - name: Upload build artifact
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: frontend-build
-  #       path: frontend/build
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          # VITE_APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build
 
   # deploy:
   #   needs: build
