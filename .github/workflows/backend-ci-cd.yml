@@ -70,12 +70,15 @@ jobs:
       # --------------------
       # Vulnerability Scan
       # --------------------
-      - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v0
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
           scan-ref: Server/MuchToDo
           severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+          
       # - name: Install govulncheck
       #   run: |
       #     go install golang.org/x/vuln/cmd/govulncheck@latest
