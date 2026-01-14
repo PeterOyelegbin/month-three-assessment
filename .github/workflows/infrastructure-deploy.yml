@@ -11,6 +11,27 @@ on:
     paths: ['terraform/**']
   workflow_dispatch:
 
+env:
+  TF_VAR_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  TF_VAR_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TF_VAR_region: ${{ vars.AWS_REGION }}
+  TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+  TF_VAR_availability_zones: ${{ vars.AWS_AVAILABILITY_ZONE }}
+  TF_VAR_public_subnet_cidrs: ${{ vars.AWS_PUBLIC_SUBNET_CIDRS }}
+  TF_VAR_private_subnet_cidrs: ${{ vars.AWS_PRIVATE_SUBNET_CIDRS }}
+  TF_VAR_instance_type: ${{ vars.AWS_ASG_INSTANCE_TYPE }}
+  TF_VAR_desired_capacity: ${{ vars.AWS_ASG_DESIRED_CAPACITY }}
+  TF_VAR_max_size: ${{ vars.AWS_ASG_MAX_SIZE }}
+  TF_VAR_min_size: ${{ vars.AWS_ASG_MIN_SIZE }}
+  TF_VAR_redis_engine_version: ${{ vars.AWS_REDIS_ENGINE_VERSION }}
+  TF_VAR_redis_node_type: ${{ vars.AWS_REDIS_NODE_TYPE }}
+  TF_VAR_redis_num_node_grps: ${{ vars.AWS_REDIS_NUM_NODE_GRPS }}
+  TF_VAR_redis_replicas_per_node_grp: ${{ vars.AWS_REDIS_REPLICAS_PER_NODE_GRPS }}
+  TF_VAR_redis_snapshot_retention_limit: ${{ vars.AWS_REDIS_SNAPSHOT_RETENTION_LIMIT }}
+  TF_VAR_redis_snapshot_window: ${{ vars.AWS_REDIS_SNAPSHOT_WINDOW }}
+  TF_VAR_redis_maintenance_window: ${{ vars.AWS_REDIS_MAINTENANCE_WINDOW }}
+  TF_VAR_redis_cloudwatch_retention_in_days: ${{ vars.AWS_REDIS_CLOUDWATCH_RETENTION_DAYS }}
+
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
