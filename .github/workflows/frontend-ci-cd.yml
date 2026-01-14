@@ -2,7 +2,7 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [dev, stagging]
+    branches: [dev, staging]
     paths:
       - 'Client/**'
       - '.github/workflows/frontend-ci-cd.yml'

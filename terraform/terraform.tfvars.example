@@ -1,7 +1,5 @@
-access_key = "YOUR_AWS_ACCESS_KEY_ID"
-secret_key = "YOUR_AWS_SECRET_ACCESS_KEY"
-project_name = "starttech"
 region = "us-east-1"
+project_name = "starttech"
 
 # VPC
 availability_zones = ["us-east-1a", "us-east-1b"]

@@ -27,35 +27,35 @@ data "aws_ami" "amazon_linux" {
     }
 }
 
-# Generate RSA key pair
-resource "tls_private_key" "key_pair" {
-    algorithm = "RSA"
-    rsa_bits  = 4096
-}
+# # Generate RSA key pair
+# resource "tls_private_key" "key_pair" {
+#     algorithm = "RSA"
+#     rsa_bits  = 4096
+# }
 
-# Create AWS key pair
-resource "aws_key_pair" "generated_key" {
-    key_name   = "${var.project_name}-key"
-    public_key = tls_private_key.key_pair.public_key_openssh
+# # Create AWS key pair
+# resource "aws_key_pair" "generated_key" {
+#     key_name   = "${var.project_name}-key"
+#     public_key = tls_private_key.key_pair.public_key_openssh
     
-    tags = {
-        Name = "${var.project_name}-key"
-        ManagedBy = "terraform"
-    }
-}
+#     tags = {
+#         Name = "${var.project_name}-key"
+#         ManagedBy = "terraform"
+#     }
+# }
 
-# Save private key to local file
-resource "local_file" "private_key" {
-    content  = tls_private_key.key_pair.private_key_pem
-    filename = "${path.root}/${aws_key_pair.generated_key.key_name}.pem"
-    file_permission = "0400"
-}
+# # Save private key to local file
+# resource "local_file" "private_key" {
+#     content  = tls_private_key.key_pair.private_key_pem
+#     filename = "${path.root}/${aws_key_pair.generated_key.key_name}.pem"
+#     file_permission = "0400"
+# }
 
 resource "aws_launch_template" "instance" {
     name_prefix   = "${var.project_name}-amazon-instance"
     image_id      = data.aws_ami.amazon_linux.id
     instance_type = var.instance_type
-    key_name      = aws_key_pair.generated_key.key_name
+    # key_name      = aws_key_pair.generated_key.key_name
 
     iam_instance_profile {
         name = var.instance_profile_name
