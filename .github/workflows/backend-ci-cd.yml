@@ -51,8 +51,10 @@ jobs:
       # Unit Tests
       # --------------------
       - name: Run unit tests
+        # env:
+        #   GOTOOLCHAIN: auto
         run: |
-          go test ./... -short -race -coverprofile=coverage.out
+          go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
 
       # --------------------
       # Integration Tests
