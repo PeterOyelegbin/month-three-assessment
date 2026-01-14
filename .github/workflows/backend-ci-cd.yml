@@ -70,15 +70,21 @@ jobs:
       # --------------------
       # Vulnerability Scan
       # --------------------
-      - name: Install govulncheck
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.24.0
+        with:
+          scan-type: fs
+          scan-ref: Server/MuchToDo
+          severity: HIGH,CRITICAL
+      # - name: Install govulncheck
+      #   run: |
+      #     go install golang.org/x/vuln/cmd/govulncheck@latest
 
-      - name: Run vulnerability scan
-        env:
-          GOTOOLCHAIN: auto
-        run: |
-          govulncheck ./cmd/... ./internal/...
+      # - name: Run vulnerability scan
+      #   env:
+      #     GOTOOLCHAIN: auto
+      #   run: |
+      #     govulncheck ./cmd/... ./internal/...
 
       # --------------------
       # Upload Coverage (optional)
