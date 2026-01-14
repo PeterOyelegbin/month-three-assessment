@@ -30,8 +30,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-          # cache: true
-          # cache-dependency-path: Server/MuchToDo/go.sum
+          cache: true
+          cache-dependency-path: Server/MuchToDo/go.sum
 
       - name: Download dependencies
         run: go mod download
