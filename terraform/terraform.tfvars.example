@@ -1,5 +1,5 @@
-project_name = "starttech"
 region = "us-east-1"
+project_name = "starttech"
 
 # VPC
 availability_zones = ["us-east-1a", "us-east-1b"]
