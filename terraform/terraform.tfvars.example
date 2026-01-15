@@ -1,5 +1,3 @@
-access_key = "YOUR_AWS_ACCESS_KEY_ID"
-secret_key = "YOUR_AWS_SECRET_ACCESS_KEY"
 project_name = "starttech"
 region = "us-east-1"
 
