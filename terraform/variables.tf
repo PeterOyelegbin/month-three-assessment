@@ -1,7 +1,7 @@
 variable "region" {
-    description = "The AWS region to deploy resources in."
-    type        = string
-    default     = "us-west-2"
+  description = "The AWS region to deploy resources in."
+  type        = string
+  default     = "us-west-2"
 }
 
 variable "project_name" {
@@ -28,7 +28,7 @@ variable "availability_zones" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"  
+  default     = "t3.micro"
 }
 
 # Autoscaling Group variables defination
@@ -50,41 +50,41 @@ variable "min_size" {
 # Cloudwatch variables defination
 variable "redis_cloudwatch_retention_in_days" {
   description = "Cloudwatch log retention period in days"
-  type = number
+  type        = number
 }
 
 # Redis variables defination
 variable "redis_engine_version" {
   description = "Redis engine version"
-  type = string
+  type        = string
 }
 
 variable "redis_node_type" {
   description = "Redis node type"
-  type = string
+  type        = string
 }
 
 variable "redis_num_node_grps" {
   description = "Redis number of node groups"
-  type = number
+  type        = number
 }
 
 variable "redis_replicas_per_node_grp" {
   description = "Redis number of replicas per node group"
-  type = number
+  type        = number
 }
 
 variable "redis_snapshot_retention_limit" {
   description = "Redis number of snapshot retention limit"
-  type = number
+  type        = number
 }
 
 variable "redis_snapshot_window" {
   description = "Redis snapshot date range"
-  type = string
+  type        = string
 }
 
 variable "redis_maintenance_window" {
   description = "Redis maintenance date range"
-  type = string
+  type        = string
 }
