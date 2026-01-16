@@ -27,42 +27,17 @@ data "aws_ami" "amazon_linux" {
     }
 }
 
-# # Generate RSA key pair
-# resource "tls_private_key" "key_pair" {
-#     algorithm = "RSA"
-#     rsa_bits  = 4096
-# }
-
-# # Create AWS key pair
-# resource "aws_key_pair" "generated_key" {
-#     key_name   = "${var.project_name}-key"
-#     public_key = tls_private_key.key_pair.public_key_openssh
-    
-#     tags = {
-#         Name = "${var.project_name}-key"
-#         ManagedBy = "terraform"
-#     }
-# }
-
-# # Save private key to local file
-# resource "local_file" "private_key" {
-#     content  = tls_private_key.key_pair.private_key_pem
-#     filename = "${path.root}/${aws_key_pair.generated_key.key_name}.pem"
-#     file_permission = "0400"
-# }
-
 resource "aws_launch_template" "instance" {
     name_prefix   = "${var.project_name}-amazon-instance"
     image_id      = data.aws_ami.amazon_linux.id
     instance_type = var.instance_type
-    # key_name      = aws_key_pair.generated_key.key_name
 
     iam_instance_profile {
         name = var.instance_profile_name
     }
 
     network_interfaces {
-        associate_public_ip_address = true # Set to false if on private subnet
+        associate_public_ip_address = false
         security_groups             = [var.instance_sg_id]
     }
 
@@ -88,7 +63,7 @@ resource "aws_autoscaling_group" "auto-scaling" {
     desired_capacity          = var.desired_capacity
     max_size                  = var.max_size
     min_size                  = var.min_size
-    vpc_zone_identifier       = var.public_subnet_ids
+    vpc_zone_identifier       = var.private_subnet_ids
     health_check_type         = "ELB"
     health_check_grace_period = 300
 

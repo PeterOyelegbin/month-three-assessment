@@ -2,16 +2,8 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "5.100.0"
     }
-    # tls = {
-    #     source  = "hashicorp/tls"
-    #     version = "~> 4.0"
-    # }
-    # local = {
-    #     source  = "hashicorp/local"
-    #     version = "~> 2.0"
-    # }
   }
 
   # backend "s3" {
@@ -56,8 +48,7 @@ module "autoscaling" {
   source = "./modules/compute/autoscaling"
 
   project_name      = var.project_name
-  public_subnet_ids = module.vpc.public_subnet_ids
-  # private_subnet_ids = module.vpc.private_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
   instance_type         = var.instance_type
   instance_profile_name = module.iam.instance_profile_name
   instance_sg_id        = module.security_groups.instance_sg_id

@@ -1,8 +1,3 @@
-output "asg_instance_public_ips" {
-  description = "Public IP addresses of instances in the Auto Scaling Group"
-  value       = module.autoscaling.instance_public_ips
-}
-
 output "asg_instance_ids" {
   description = "ID of instances in the Auto Scaling Group"
   value       = module.autoscaling.instance_ids

@@ -3,8 +3,8 @@ variable "project_name" {
   type        = string
 }
 
-variable "public_subnet_ids" {
-  description = "Public subnet IDs for autoscaling group"
+variable "private_subnet_ids" {
+  description = "Private subnet IDs for autoscaling group"
   type        = list(string)
 }
 

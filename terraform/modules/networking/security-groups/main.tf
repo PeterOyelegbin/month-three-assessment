@@ -42,15 +42,6 @@ resource "aws_security_group" "instance_sg" {
     description = "Security group for instances"
     vpc_id      = var.vpc_id
 
-    # Allow SSH from anywhere (restrict in production)
-    ingress {
-        description     = "SSH from anywhere"
-        from_port       = 22
-        to_port         = 22
-        protocol        = "tcp"
-        cidr_blocks     = ["0.0.0.0/0"]
-    }
-
     # Allow HTTP from alb security group only
     ingress {
         description     = "HTTP from alb instances"
@@ -58,6 +49,15 @@ resource "aws_security_group" "instance_sg" {
         to_port         = 80
         protocol        = "tcp"
         security_groups = [aws_security_group.alb_sg.id]
+    }
+
+    # Allow all traffic within the private security group
+    ingress {
+        description = "All traffic within private SG"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        self        = true
     }
 
     # Allow all outbound traffic
