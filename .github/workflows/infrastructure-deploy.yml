@@ -109,6 +109,17 @@ jobs:
         with:
           name: tfplan
 
+      - name: List Downloaded Files
+        run: |
+          echo "Current directory contents:"
+          ls -la
+          
+          # If the artifact was zipped, unzip it
+          if [ -f "tfplan.zip" ]; then
+            unzip -o tfplan.zip
+            ls -la
+          fi
+
       - name: Terraform Apply
         run: |
           # Write the variable content to a file
