@@ -135,12 +135,19 @@ jobs:
 
       - name: Output Terraform Data
         run: |
-          ${{ env.TERRAFORM_CLI_PATH }}/terraform output -json > outputs.json 2>/dev/null
+          # Generate output
+          terraform output -json > outputs.raw 2>&1
+          
+          # Clean the file - remove first line if it's not JSON
+          sed -i '1{/^{/!d;}' outputs.raw
+          mv outputs.raw outputs.json
+          
+          echo "Cleaned outputs.json created"
 
       - name: Verify Terraform Outputs
         run: |
           echo "First character of file:"
-          head -c 1 outputs.json
+          head -n 5 outputs.json
           echo ""
 
           # Check if file starts with {
