@@ -140,6 +140,9 @@ jobs:
         run: pip3 install pynacl
 
       - name: Update GitHub Secrets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           python3 scripts/update_env_vars.py
 
