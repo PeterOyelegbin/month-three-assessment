@@ -108,6 +108,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
+          path: terraform/
 
       - name: List Downloaded Files
         run: |
