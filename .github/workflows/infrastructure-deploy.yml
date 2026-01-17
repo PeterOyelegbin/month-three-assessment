@@ -135,24 +135,23 @@ jobs:
 
       - name: Output Terraform Data
         run: |
-          OUTPUT=$(terraform output -json 2>/dev/null || echo "{}")
-          
-          # Write to file
-          echo "$OUTPUT" > outputs.json
+          ${{ env.TERRAFORM_CLI_PATH }}/terraform output -json > outputs.json 2>/dev/null
 
       - name: Verify Terraform Outputs
         run: |
-          echo "Generated outputs.json:"
-          ls -la outputs.json
-          echo "Content preview:"
-          cat outputs.json
+          echo "First character of file:"
+          head -c 1 outputs.json
           echo ""
-          
-          # Validate JSON
-          if ! python3 -c "import json; json.load(open('outputs.json'))"; then
-            echo "ERROR: Invalid JSON in outputs.json"
-            exit 1
+
+          # Check if file starts with {
+          if [[ $(head -c 1 outputs.json) != "{" ]]; then
+            echo "File doesn't start with {, cleaning..."
+            # Remove first line
+            tail -n +2 outputs.json > outputs_clean.json
+            mv outputs_clean.json outputs.json
           fi
+          
+          python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
       - name: Install Python dependencies
         run: pip3 install pynacl
