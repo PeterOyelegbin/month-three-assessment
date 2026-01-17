@@ -157,6 +157,9 @@ jobs:
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
           fi
+
+          echo "Last 50 characters:"
+          tail -c 50 outputs.json | od -c
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
