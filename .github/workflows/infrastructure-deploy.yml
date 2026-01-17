@@ -109,21 +109,21 @@ jobs:
         with:
           name: tfplan
 
-      # - name: Terraform Apply
-      #   run: |
-      #     # Write the variable content to a file
-      #     cat > terraform.tfvars << 'EOF'
-      #     ${{ vars.TERRAFORM_TFVARS }}
-      #     EOF
+      - name: Terraform Apply
+        run: |
+          # Write the variable content to a file
+          cat > terraform.tfvars << 'EOF'
+          ${{ vars.TERRAFORM_TFVARS }}
+          EOF
 
-      #     terraform apply -var-file=terraform.tfvars tfplan
+          terraform apply -var-file=terraform.tfvars tfplan
 
-      # - name: Output Terraform Data
-      #   run: terraform output -json > outputs.json
+      - name: Output Terraform Data
+        run: terraform output -json > outputs.json
 
-      # - name: Update GitHub Secrets
-      #   run: |
-      #     python3 scripts/update_env_vars.py
+      - name: Update GitHub Secrets
+        run: |
+          python3 scripts/update_env_vars.py
 
 
   terraform-destroy:

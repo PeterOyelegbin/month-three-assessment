@@ -6,13 +6,14 @@ terraform {
     }
   }
 
-  # backend "s3" {
-  #     bucket         = "starttech-AWSID-tfstate"
-  #     key            = "prod/terraform.tfstate"
-  #     region         = var.region
-  #     encrypt        = true
-  #     dynamodb_table = "starttech-tflocks"
-  # }
+  backend "s3" {
+    bucket         = "starttech-154517339571-tfstate"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    use_lockfile   = true
+    # dynamodb_table = "starttech-tflocks"
+  }
 
   required_version = ">= 1.10"
 }
