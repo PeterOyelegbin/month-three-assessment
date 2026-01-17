@@ -136,6 +136,9 @@ jobs:
       - name: Output Terraform Data
         run: terraform output -json > outputs.json
 
+      - name: Install Python dependencies
+        run: pip3 install pynacl
+
       - name: Update GitHub Secrets
         run: |
           python3 scripts/update_env_vars.py
