@@ -134,7 +134,7 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json > outputs.json
+        run: terraform output -json 2>/dev/null > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
