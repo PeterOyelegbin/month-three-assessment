@@ -144,7 +144,7 @@ jobs:
           echo "Generated outputs.json:"
           ls -la outputs.json
           echo "Content preview:"
-          head -c 500 outputs.json
+          cat outputs.json
           echo ""
           
           # Validate JSON
