@@ -110,7 +110,13 @@ jobs:
           name: tfplan
 
       # - name: Terraform Apply
-      #   run: terraform apply tfplan
+      #   run: |
+      #     # Write the variable content to a file
+      #     cat > terraform.tfvars << 'EOF'
+      #     ${{ vars.TERRAFORM_TFVARS }}
+      #     EOF
+
+      #     terraform apply -var-file=terraform.tfvars tfplan
 
       # - name: Output Terraform Data
       #   run: terraform output -json > outputs.json
@@ -145,4 +151,10 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve 
+        run: |
+          # Write the variable content to a file
+          cat > terraform.tfvars << 'EOF'
+          ${{ vars.TERRAFORM_TFVARS }}
+          EOF
+
+          terraform destroy -auto-approve -var-file=terraform.tfvars
