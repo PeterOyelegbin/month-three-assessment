@@ -147,8 +147,7 @@ jobs:
       - name: Verify Terraform Outputs
         run: |
           echo "First character of file:"
-          head -n 5 outputs.json
-          echo ""
+          cat outputs.json
 
           # Check if file starts with {
           if [[ $(head -c 1 outputs.json) != "{" ]]; then
@@ -157,9 +156,6 @@ jobs:
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
           fi
-
-          echo "Last 50 characters:"
-          tail -c 50 outputs.json | od -c
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
