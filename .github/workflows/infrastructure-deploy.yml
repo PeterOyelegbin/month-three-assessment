@@ -141,15 +141,15 @@ jobs:
           echo "Current directory contents:"
           ls -la
 
-          echo "Generated terraform_outputs.json:"
-          ls -la terraform_outputs.json
+          echo "Generated outputs.json:"
+          ls -la outputs.json
           echo "Content preview:"
-          head -c 500 terraform_outputs.json
+          head -c 500 outputs.json
           echo ""
           
           # Validate JSON
-          if ! python3 -c "import json; json.load(open('terraform_outputs.json'))"; then
-            echo "ERROR: Invalid JSON in terraform_outputs.json"
+          if ! python3 -c "import json; json.load(open('outputs.json'))"; then
+            echo "ERROR: Invalid JSON in outputs.json"
             exit 1
           fi
 
