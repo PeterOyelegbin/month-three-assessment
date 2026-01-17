@@ -14,7 +14,7 @@ terraform {
   #     dynamodb_table = "starttech-tflocks"
   # }
 
-  required_version = ">= 0.12"
+  required_version = ">= 1.10"
 }
 
 # Configure the AWS Provider
@@ -103,4 +103,11 @@ module "redis" {
   redis_snapshot_window          = var.redis_snapshot_window
   redis_maintenance_window       = var.redis_maintenance_window
   cloudwatch_log_grp_name        = module.cloudwatch.redis_cloudwatch_log_grp_name
+}
+
+module "ecr" {
+  source = "./modules/storage/ecr"
+
+  project_name                = var.project_name
+  ecr_image_retention_count   = var.ecr_image_retention_count
 }

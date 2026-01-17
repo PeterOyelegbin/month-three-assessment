@@ -1,10 +1,10 @@
 terraform {
-  required_version = ">= 1.3"
+  required_version = ">= 1.10"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "5.100.0"
     }
   }
 }
@@ -25,7 +25,7 @@ resource "aws_s3_bucket" "tf_state" {
   bucket = local.state_bucket_name
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false #set to false for testing purposes, change to true in production
   }
 }
 
@@ -33,7 +33,7 @@ resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.tf_state.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = "Disabled" #set to Enabled in production
   }
 }
 
@@ -67,6 +67,6 @@ resource "aws_dynamodb_table" "tf_locks" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false #set to false for testing purposes, change to true in production
   }
 }

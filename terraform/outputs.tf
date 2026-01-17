@@ -22,3 +22,8 @@ output "cloudfront_url" {
   description = "Cloudfront public url"
   value       = module.cloudfront.cdn_url
 }
+
+output "ecr_repo_url" {
+  description = "ECR repository URL"
+  value       = module.ecr.ecr_repository_url
+}

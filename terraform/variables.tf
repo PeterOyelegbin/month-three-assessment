@@ -88,3 +88,9 @@ variable "redis_maintenance_window" {
   description = "Redis maintenance date range"
   type        = string
 }
+
+# ECR variables defination
+variable "ecr_image_retention_count" {
+  description = "Number of ECR images to retain"
+  type        = number
+}

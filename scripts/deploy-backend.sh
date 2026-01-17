@@ -4,27 +4,31 @@ set -euo pipefail
 
 # ********** Local build settings **********
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../Server/MuchToDo"
-DOCKER_REPO_NAME="peteroyelegbin"
-IMAGE_NAME="starttech-backend"
+IMAGE_NAME="starttech-ecr"
 IMAGE_TAG="latest"
 
 # ********** AWS / SSM settings **********
 AWS_REGION="us-east-1"
 SSM_DOCUMENT="AWS-RunShellScript"
 
-# Use INSTANCE IDS, not IPs
-INSTANCE_IDS=("i-00555cb9ce19605b3" "i-0965728739f73867e")
+# ********** EC2 Instance IDs to deploy to **********
+INSTANCE_IDS=("i-067c60f11469967ca" "i-067e52a9537ea51e6")
 
-REDIS_ENDPOINT="starttech-redis.c7x96g.ng.0001.use1.cache.amazonaws.com"
+# ********** Build and push to AWS ECR **********
+echo "Getting AWS Account ID..."
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 
+echo "Logging in to AWS ECR..."
+aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-# ********** Build and push Docker image **********
-echo "Building Docker image..."
+ECR_REPO_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+echo "Building Docker image for ECR..."
 cd "$APP_DIR"
-docker build -t "$DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG" .
+docker build -t "$ECR_REPO_URI/$IMAGE_NAME:$IMAGE_TAG" .
 
-echo "Pushing image to Docker Hub..."
-docker push "$DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG"
+echo "Pushing image to AWS ECR..."
+docker push "$ECR_REPO_URI/$IMAGE_NAME:$IMAGE_TAG"
 
 
 # ********** Read .env file **********
@@ -35,21 +39,21 @@ ENV_CONTENT=$(sed 's/"/\\"/g' "$APP_DIR/.env")
 for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
   echo "Deploying to instance $INSTANCE_ID via SSM..."
 
-  aws ssm send-command --region "$AWS_REGION" --document-name "$SSM_DOCUMENT" \
+  aws ssm send-command --no-cli-pager --region "$AWS_REGION" --document-name "$SSM_DOCUMENT" \
     --targets "Key=instanceids,Values=$INSTANCE_ID" \
     --comment "Deploy backend container" \
     --parameters commands="[
       \"set -euo pipefail\",
       \"echo '$ENV_CONTENT' | sudo tee /app/.env\",
-      \"sudo docker pull $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\",
-      \"sudo docker rm -f backend || true\",
-      \"echo 'Testing Redis endpoint'\",
-      \"redis-cli -h $REDIS_ENDPOINT -p 6379 PING\",
+      \"aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\",
+      \"sudo docker pull $ECR_REPO_URI/$IMAGE_NAME:$IMAGE_TAG\",
       \"sudo systemctl stop nginx || true\",
-      \"sudo docker run -d --name backend --restart always -p 80:8080 \
-         -v /app/.env:/app/.env \
-         -v /app/application.log:/app/application.log \
-         $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\"
+      \"sudo docker run -d --name backend_new --restart always -p 80:8080 -v /app/.env:/app/.env \
+         -v /app/application.log:/app/application.log $ECR_REPO_URI/$IMAGE_NAME:$IMAGE_TAG\",
+      \"sleep 5\",
+      \"sudo docker inspect --format='{{.State.Running}}' backend_new\",
+      \"sudo docker rm -f backend || true\",
+      \"sudo docker rename backend_new backend\"
     ]" \
     --output text
 done

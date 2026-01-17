@@ -92,7 +92,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -100,7 +100,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
         env:
@@ -120,6 +120,19 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
 
+      # Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and push Docker image
+      - name: Build Docker image
+        run: |
+          cd $APP_DIR
+          docker build -t $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG .
+
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v4
         if: always()
@@ -132,9 +145,48 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
+      - name: Push Docker image
+        if: success() && github.ref != 'refs/heads/main'
+        run: |
+          docker push $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG
 
-  # # Deploy pipeline
-  # deploy:
-  #   needs: build
-  #   if: github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
+
+  # Deploy pipeline
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Deploy via AWS SSM
+      - name: Deploy to EC2 via SSM
+        run: |
+          IFS=',' read -ra IDS <<< "$INSTANCE_IDS"
+
+          for INSTANCE_ID in "${IDS[@]}"; do
+            echo "Deploying to $INSTANCE_ID..."
+
+            aws ssm send-command --region "$AWS_REGION" --document-name "$SSM_DOCUMENT" \
+              --targets "Key=instanceids,Values=$INSTANCE_ID" \
+              --comment "Deploy backend container via GitHub Actions" \
+              --parameters commands="[
+                \"set -euo pipefail\",
+                \"echo '${{ secrets.APP_ENV_FILE }}' | sudo tee /app/.env\",
+                \"sudo docker pull $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\",
+                \"sudo docker rm -f backend || true\",
+                \"sudo systemctl stop nginx || true\",
+                \"sudo docker run -d --name backend --restart always -p 80:8080 \
+                   -v /app/.env:/app/.env -v /app/application.log:/app/application.log \
+                   $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\"
+              ]"
+          done

@@ -2,12 +2,12 @@ name: Infrastructure Deployment
 
 on:
   push:
-    branches: [dev, staging]
+    branches: [main, staging]
     paths: 
       - 'terraform/**'
       - '.github/workflows/infrastructure-deploy.yml'
   pull_request:
-    branches: [dev]
+    branches: [destoy-tf]
     paths: ['terraform/**']
   workflow_dispatch:
 
@@ -29,6 +29,7 @@ env:
   TF_VAR_redis_snapshot_window: ${{ vars.AWS_REDIS_SNAPSHOT_WINDOW }}
   TF_VAR_redis_maintenance_window: ${{ vars.AWS_REDIS_MAINTENANCE_WINDOW }}
   TF_VAR_redis_cloudwatch_retention_in_days: ${{ vars.AWS_REDIS_CLOUDWATCH_RETENTION_DAYS }}
+  TF_VAR_ecr_image_retention_count: ${{ vars.AWS_ECR_IMAGE_RETENTION_COUNT }}
 
 jobs:
   terraform-plan:
@@ -44,7 +45,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: 1.10.5
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -68,6 +69,7 @@ jobs:
         with:
           name: tfplan
           path: tfplan
+
 
   terraform-apply:
     needs: terraform-plan
@@ -96,12 +98,40 @@ jobs:
         with:
           name: tfplan
 
-      - name: Terraform Apply
-        run: terraform apply tfplan
+      # - name: Terraform Apply
+      #   run: terraform apply tfplan
 
-      - name: Output Terraform Data
-        run: terraform output -json > outputs.json
+      # - name: Output Terraform Data
+      #   run: terraform output -json > outputs.json
 
-      - name: Update GitHub Secrets
-        run: |
-          python3 scripts/update_env_vars.py
+      # - name: Update GitHub Secrets
+      #   run: |
+      #     python3 scripts/update_env_vars.py
+
+
+  terraform-destroy:
+    if: github.base_ref == 'destoy-tf' && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve 

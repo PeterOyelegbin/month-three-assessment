@@ -32,6 +32,11 @@ resource "aws_iam_role_policy_attachment" "cloudwatch" {
     policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "ecr_readonly" {
+    role       = aws_iam_role.instance.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
 # Create instance profile
 resource "aws_iam_instance_profile" "instance" {
     name = "${var.project_name}-ec2-instance-profile"

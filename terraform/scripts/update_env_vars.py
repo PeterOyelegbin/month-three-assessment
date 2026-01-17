@@ -29,11 +29,12 @@ except FileNotFoundError:
 
 # Map Terraform outputs → GitHub Secrets
 SECRETS_MAP = {
-    "ASG_SERVER_IPS": tf_outputs["asg_instance_public_ips"]["value"],
+    "ASG_SERVER_IDS": tf_outputs["asg_instance_ids"]["value"],
     "LOAD_BALANCER_DNS_NAME": tf_outputs["load_balancer_dns_name"]["value"],
     "REDIS_ENDPOINT": tf_outputs["redis_primary_endpoint"]["value"],
     "CLOUDFRONT_DISTRIBUTION_ID": tf_outputs["distribution_id"]["value"],
     "CLOUDFRONT_URL": tf_outputs["cloudfront_url"]["value"],
+    "ECR_REPO_URL": tf_outputs["ecr_repo_url"]["value"],
 }
 
 

@@ -21,3 +21,6 @@ redis_snapshot_retention_limit = 3
 redis_snapshot_window = "03:00-04:00"
 redis_maintenance_window = "sun:04:00-sun:05:00"
 redis_cloudwatch_retention_in_days = 3
+
+# ECR
+ecr_image_retention_count = 2
