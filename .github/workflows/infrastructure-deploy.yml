@@ -134,12 +134,12 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json | jq . > outputs.json
+        run: terraform output -json | python3 -m json.tool > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
           cat outputs.json
-          
+
           # Check if file starts with {
           if [[ $(head -n 1 outputs.json) != "{" ]]; then
             echo "File doesn't start with {, cleaning..."
