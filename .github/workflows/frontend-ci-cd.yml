@@ -13,7 +13,6 @@ on:
 
 env:
   S3_BUCKET: starttech-frontend-bkt
-  # CLOUDFRONT_DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
 jobs:
   # Test pipeline
@@ -139,13 +138,3 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
-
-      # - name: Notify deployment
-      #   if: success()
-      #   uses: rtCamp/action-slack-notify@v2
-      #   env:
-      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-      #     SLACK_CHANNEL: deployments
-      #     SLACK_COLOR: good
-      #     SLACK_TITLE: "Frontend Deployed Successfully"
-      #     SLACK_MESSAGE: "Frontend deployed to ${{ env.S3_BUCKET }}"
