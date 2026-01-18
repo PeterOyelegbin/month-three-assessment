@@ -146,8 +146,9 @@ jobs:
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
-            sed -i ':a; $!{N;ba}; s/\(\n*\)$//; s/}[^}]*\n*$/}/' outputs.json
-            # sed -i -e ':a' -e '$!{N;ba' -e '}' -e 's/}[[:space:]]*$/}/' outputs.json
+            # sed -i ':a; $!{N;ba}; s/\(\n*\)$//; s/}[^}]*\n*$/}/' outputs.json
+            awk 'BEGIN{last=0} /}/{last=NR} {lines[NR]=$0} END{for(i=1;i<=NR;i++) { if(i==NR && i==last) print substr(lines[i], 1, index(lines[i], "}")); else print lines[i] }}' outputs.json > outputs_clean.json
+            mv outputs_clean.json outputs.json
 
             echo "Full contents of outputs.json:"
             cat outputs.json
