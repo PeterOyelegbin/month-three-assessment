@@ -134,12 +134,7 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: |
-          terraform output -json > outputs.json
-
-          # Then format if needed
-          python3 -m json.tool outputs.json > outputs.json.tmp
-          mv outputs.json.tmp outputs.json
+        run: terraform output -json > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
