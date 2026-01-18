@@ -140,22 +140,21 @@ jobs:
           # Clean the file - remove first line if it's not JSON
           sed -i '1{/^{/!d;}' outputs.raw
           mv outputs.raw outputs.json
-          cat outputs.json
-
-          echo "Cleaned outputs.json created"
 
       - name: Verify Terraform Outputs
         run: |
           echo "Showing contents of outputs.json file:"
-          cat outputs.json
+          # cat outputs.json
+          head -c 2 outputs.json
 
-          # # Check if file starts with {
-          # if [[ $(head -c 1 outputs.json) != "{" ]]; then
-          #   echo "File doesn't start with {, cleaning..."
-          #   # Remove first line
-          #   tail -n +2 outputs.json > outputs_clean.json
-          #   mv outputs_clean.json outputs.json
-          # fi
+          # Check if file starts with {
+          if [[ $(head -c 1 outputs.json) != "{" ]]; then
+            echo "File doesn't start with {, cleaning..."
+            # Remove first line
+            tail -n +2 outputs.json > outputs_clean.json
+            mv outputs_clean.json outputs.json
+            head -c 2 outputs.json
+          fi
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
