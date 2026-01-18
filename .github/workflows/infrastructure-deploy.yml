@@ -134,7 +134,7 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json > outputs.json 2>&1
+        run: terraform output -json > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
@@ -144,6 +144,7 @@ jobs:
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
+            sed -i 's/}[^}]*$/}/' outputs.json
 
             echo "Full contents of outputs.json:"
             cat outputs.json
