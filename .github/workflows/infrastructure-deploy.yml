@@ -134,7 +134,7 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json | python3 -m json.tool > outputs.json
+        run: terraform output -json | python3 -c "import sys, json; json.dump(json.load(sys.stdin), sys.stdout, indent=2)" > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
