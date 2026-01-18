@@ -135,11 +135,7 @@ jobs:
 
       - name: Output Terraform Data
         run: |
-          # Generate output
-          terraform output -json > outputs.json
           terraform output -json > outputs.raw 2>&1
-          
-          cat outputs.json
 
           # Clean the file - remove first line if it's not JSON
           sed -i '1{/^{/!d;}' outputs.raw
@@ -150,7 +146,7 @@ jobs:
 
       - name: Verify Terraform Outputs
         run: |
-          echo "First character of file:"
+          echo "Showing contents of outputs.json file:"
           cat outputs.json
 
           # # Check if file starts with {
