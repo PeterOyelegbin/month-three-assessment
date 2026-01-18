@@ -15,4 +15,6 @@ terraform plan -out=tfplan
 echo "Applying Terraform plan..."
 terraform apply tfplan
 
+terraform output -json > outputs.json
+
 echo "Infrastructure deployment completed successfully!"

@@ -136,9 +136,8 @@ jobs:
       - name: Output Terraform Data
         run: |
           # Generate output
-          terraform output -json 2>/dev/null | python3 -m json.tool > outputs.json 2>/dev/null
+          terraform output -json > outputs.json
           terraform output -json > outputs.raw 2>&1
-          # terraform output -json | jq . > outputs.json
           
           cat outputs.json
 
@@ -154,13 +153,13 @@ jobs:
           echo "First character of file:"
           cat outputs.json
 
-          # Check if file starts with {
-          if [[ $(head -c 1 outputs.json) != "{" ]]; then
-            echo "File doesn't start with {, cleaning..."
-            # Remove first line
-            tail -n +2 outputs.json > outputs_clean.json
-            mv outputs_clean.json outputs.json
-          fi
+          # # Check if file starts with {
+          # if [[ $(head -c 1 outputs.json) != "{" ]]; then
+          #   echo "File doesn't start with {, cleaning..."
+          #   # Remove first line
+          #   tail -n +2 outputs.json > outputs_clean.json
+          #   mv outputs_clean.json outputs.json
+          # fi
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
