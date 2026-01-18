@@ -134,7 +134,7 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json > outputs.json
+        run: terraform output -json 2>/dev/null | grep -v "^::debug::" | head -n -2 > outputs.json
 
       - name: Verify Terraform Outputs
         run: |
@@ -146,33 +146,18 @@ jobs:
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
+
+            # head -n 38 outputs.json > outputs_clean.json
+            # mv outputs_clean.json outputs.json
+
             # sed -i ':a; $!{N;ba}; s/\(\n*\)$//; s/}[^}]*\n*$/}/' outputs.json
-            awk 'BEGIN{last=0} /}/{last=NR} {lines[NR]=$0} END{for(i=1;i<=NR;i++) { if(i==NR && i==last) print substr(lines[i], 1, index(lines[i], "}")); else print lines[i] }}' outputs.json > outputs_clean.json
-            mv outputs_clean.json outputs.json
+            # awk 'BEGIN{last=0} /}/{last=NR} {lines[NR]=$0} END{for(i=1;i<=NR;i++) { if(i==NR && i==last) print substr(lines[i], 1, index(lines[i], "}")); else print lines[i] }}' outputs.json > outputs_clean.json
+            # mv outputs_clean.json outputs.json
 
             echo "Full contents of outputs.json:"
             cat outputs.json
           fi
 
-          echo "Total lines in outputs.json:"
-          wc -l outputs.json
-
-          echo -e "\nLines 35-45:"
-          sed -n '35,45p' outputs.json
-
-          echo -e "\nLast 10 lines:"
-          tail -n 10 outputs.json
-
-          echo -e "\nShow invisible characters:"
-          sed -n '35,45p' outputs.json | cat -A
-
-          echo -e "\nHex dump around the problem area:"
-          tail -c 50 outputs.json | xxd
-
-          # Also check what character is at position 859
-          echo -e "\nCharacter at position 859:"
-          dd if=outputs.json bs=1 skip=858 count=10 2>/dev/null | xxd
-          
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
       - name: Install Python dependencies
