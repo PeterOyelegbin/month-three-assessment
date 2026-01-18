@@ -138,24 +138,12 @@ jobs:
 
       - name: Verify Terraform Outputs
         run: |
-          cat outputs.json
-
           # Check if file starts with {
           if [[ $(head -n 1 outputs.json) != "{" ]]; then
             echo "File doesn't start with {, cleaning..."
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
-
-            # head -n 38 outputs.json > outputs_clean.json
-            # mv outputs_clean.json outputs.json
-
-            # sed -i ':a; $!{N;ba}; s/\(\n*\)$//; s/}[^}]*\n*$/}/' outputs.json
-            # awk 'BEGIN{last=0} /}/{last=NR} {lines[NR]=$0} END{for(i=1;i<=NR;i++) { if(i==NR && i==last) print substr(lines[i], 1, index(lines[i], "}")); else print lines[i] }}' outputs.json > outputs_clean.json
-            # mv outputs_clean.json outputs.json
-
-            echo "Full contents of outputs.json:"
-            cat outputs.json
           fi
 
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
@@ -165,7 +153,7 @@ jobs:
 
       - name: Update GitHub Secrets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         working-directory: ./terraform
         run: |
