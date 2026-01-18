@@ -136,14 +136,18 @@ jobs:
       - name: Output Terraform Data
         run: |
           # Generate output
-          terraform output -json 2>/dev/null | python3 -m json.tool > outputs.json 2>/dev/null || echo '{}' > outputs.json
+          # terraform output -json 2>/dev/null | python3 -m json.tool > outputs.json 2>/dev/null || echo '{}' > outputs.json
           # terraform output -json > outputs.raw 2>&1
+          terraform output -json | jq . > outputs.json
           
-          # # Clean the file - remove first line if it's not JSON
-          # sed -i '1{/^{/!d;}' outputs.raw
-          # mv outputs.raw outputs.json
-          
-          # echo "Cleaned outputs.json created"
+          cat outputs.json
+
+          # Clean the file - remove first line if it's not JSON
+          sed -i '1{/^{/!d;}' outputs.raw
+          mv outputs.raw outputs.json
+          cat outputs.json
+
+          echo "Cleaned outputs.json created"
 
       - name: Verify Terraform Outputs
         run: |
