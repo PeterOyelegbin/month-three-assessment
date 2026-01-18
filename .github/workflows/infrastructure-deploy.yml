@@ -146,7 +146,7 @@ jobs:
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
-            # sed -i 's/}[^}]*$/}/' outputs.json
+            sed -i -e ':a' -e '$!{N;ba' -e '}' -e 's/}[[:space:]]*$/}/' outputs.json
 
             echo "Full contents of outputs.json:"
             cat outputs.json
