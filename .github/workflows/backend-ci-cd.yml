@@ -14,7 +14,7 @@ on:
 env:
   GO_VERSION: "1.25.1"
   GOTOOLCHAIN: auto
-  ECR_REPOSITORY: starttech-backend
+  ECR_REPOSITORY: starttech-ecr
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -163,12 +163,12 @@ jobs:
               --comment "Deploy backend container via GitHub Actions" \
               --parameters commands="[
                 \"set -euo pipefail\",
-                \"echo '${{ secrets.APP_ENV_FILE }}' | sudo tee /app/.env\",
-                \"sudo docker pull $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\",
+                \"echo '${{ vars.APP_ENV_FILE }}' | sudo tee /app/.env\",
+                \"sudo docker pull ${{ secrets.ECR_REPO_URL }}:${{ env.IMAGE_TAG }}\",
                 \"sudo docker rm -f backend || true\",
                 \"sudo systemctl stop nginx || true\",
                 \"sudo docker run -d --name backend --restart always -p 80:8080 \
                    -v /app/.env:/app/.env -v /app/application.log:/app/application.log \
-                   $DOCKER_REPO_NAME/$IMAGE_NAME:$IMAGE_TAG\"
+                   ${{ secrets.ECR_REPO_URL }}:${{ env.IMAGE_TAG }}\"
               ]"
           done
