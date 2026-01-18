@@ -144,16 +144,20 @@ jobs:
       - name: Verify Terraform Outputs
         run: |
           echo "Showing contents of outputs.json file:"
-          # cat outputs.json
-          head -c 2 outputs.json
+          head -n 2 outputs.json
+
+          echo "Showing last 5 lines of outputs.json for debugging:"
+          tail -n 5 outputs.json
 
           # Check if file starts with {
-          if [[ $(head -c 1 outputs.json) != "{" ]]; then
+          if [[ $(head -n 1 outputs.json) != "{" ]]; then
             echo "File doesn't start with {, cleaning..."
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
-            head -c 2 outputs.json
+            head -n 2 outputs.json
+            echo "Showing last 5 lines of outputs.json for debugging:"
+            tail -n 5 outputs.json
           fi
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
