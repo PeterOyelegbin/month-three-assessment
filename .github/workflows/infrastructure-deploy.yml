@@ -136,9 +136,9 @@ jobs:
       - name: Output Terraform Data
         run: |
           # Generate output
-          # terraform output -json 2>/dev/null | python3 -m json.tool > outputs.json 2>/dev/null || echo '{}' > outputs.json
-          # terraform output -json > outputs.raw 2>&1
-          terraform output -json | jq . > outputs.json
+          terraform output -json 2>/dev/null | python3 -m json.tool > outputs.json 2>/dev/null
+          terraform output -json > outputs.raw 2>&1
+          # terraform output -json | jq . > outputs.json
           
           cat outputs.json
 
