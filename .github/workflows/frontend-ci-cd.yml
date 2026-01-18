@@ -2,12 +2,12 @@ name: Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [dev, staging]
+    branches: [main, staging]
     paths:
       - 'Client/**'
       - '.github/workflows/frontend-ci-cd.yml'
   pull_request:
-    branches: [dev]
+    branches: [main]
     paths: ['Client/**']
   workflow_dispatch:
 
@@ -91,7 +91,7 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_BASE_URL: ${{ secrets.LOAD_BALANCER_DNS_NAME }}
           
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
