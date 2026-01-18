@@ -135,20 +135,11 @@ jobs:
 
       - name: Output Terraform Data
         run: |
-          # Force Terraform to write directly to file
           terraform output -json > outputs.json
 
           # Then format if needed
-          if command -v jq >/dev/null 2>&1; then
-            # Use temp file to avoid pipe issues
-            cp outputs.json outputs.json.tmp
-            jq . outputs.json.tmp > outputs.json
-            rm outputs.json.tmp
-          else
-            # Use Python
-            python3 -m json.tool outputs.json > outputs.json.tmp
-            mv outputs.json.tmp outputs.json
-          fi
+          python3 -m json.tool outputs.json > outputs.json.tmp
+          mv outputs.json.tmp outputs.json
 
       - name: Verify Terraform Outputs
         run: |
