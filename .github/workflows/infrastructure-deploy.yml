@@ -134,34 +134,17 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: |
-          terraform output -json > outputs.json 2>&1
-          tail -n 5 outputs.json
-
-          # # Clean the file - remove first line if it's not JSON
-          # sed -i '1{/^{/!d;}' outputs.raw
-          # mv outputs.raw outputs.json
+        run: terraform output -json > outputs.json 2>&1
 
       - name: Verify Terraform Outputs
         run: |
-          echo "Showing contents of outputs.json file:"
-          head -n 2 outputs.json
-
-          echo "Showing last 5 lines of outputs.json for debugging:"
-          tail outputs.json
-
-          echo "Full contents of outputs.json:"
-          cat outputs.json
-
           # Check if file starts with {
           if [[ $(head -n 1 outputs.json) != "{" ]]; then
             echo "File doesn't start with {, cleaning..."
             # Remove first line
             tail -n +2 outputs.json > outputs_clean.json
             mv outputs_clean.json outputs.json
-            head -n 2 outputs.json
-            echo "Showing last 5 lines of outputs.json for debugging:"
-            tail -n 5 outputs.json
+
             echo "Full contents of outputs.json:"
             cat outputs.json
           fi
