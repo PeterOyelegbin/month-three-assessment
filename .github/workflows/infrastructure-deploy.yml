@@ -136,6 +136,7 @@ jobs:
       - name: Output Terraform Data
         run: |
           terraform output -json > outputs.json 2>&1
+          tail -n 5 outputs.json
 
           # # Clean the file - remove first line if it's not JSON
           # sed -i '1{/^{/!d;}' outputs.raw
@@ -147,7 +148,10 @@ jobs:
           head -n 2 outputs.json
 
           echo "Showing last 5 lines of outputs.json for debugging:"
-          tail -n 5 outputs.json
+          tail outputs.json
+
+          echo "Full contents of outputs.json:"
+          cat outputs.json
 
           # Check if file starts with {
           if [[ $(head -n 1 outputs.json) != "{" ]]; then
@@ -158,6 +162,8 @@ jobs:
             head -n 2 outputs.json
             echo "Showing last 5 lines of outputs.json for debugging:"
             tail -n 5 outputs.json
+            echo "Full contents of outputs.json:"
+            cat outputs.json
           fi
           
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
