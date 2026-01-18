@@ -134,7 +134,21 @@ jobs:
           terraform apply -var-file=terraform.tfvars tfplan
 
       - name: Output Terraform Data
-        run: terraform output -json | python3 -c "import sys, json; json.dump(json.load(sys.stdin), sys.stdout, indent=2)" > outputs.json
+        run: |
+          # Force Terraform to write directly to file
+          terraform output -json > outputs.json
+
+          # Then format if needed
+          if command -v jq >/dev/null 2>&1; then
+            # Use temp file to avoid pipe issues
+            cp outputs.json outputs.json.tmp
+            jq . outputs.json.tmp > outputs.json
+            rm outputs.json.tmp
+          else
+            # Use Python
+            python3 -m json.tool outputs.json > outputs.json.tmp
+            mv outputs.json.tmp outputs.json
+          fi
 
       - name: Verify Terraform Outputs
         run: |
