@@ -105,7 +105,7 @@ jobs:
       - name: Build Docker image
         env:
           DOCKER_BUILDKIT: 1
-          MONGODB_URI_PLACEHOLDER: "mongodb://admin:6paLqd8Qon@localhost/?appName=much-todo-db"
+          MONGODB_URI_PLACEHOLDER: "mongodb+srv://admin:6paLqd8Qon@localhost/?appName=much-todo-db"
         run: |
           docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
             --build-arg MONGODB_URI="${{ env.MONGODB_URI_PLACEHOLDER }}" \
