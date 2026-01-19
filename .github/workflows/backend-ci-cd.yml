@@ -22,69 +22,70 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  # # Test pipeline
-  # test-and-scan:
-  #   name: Test, Lint & Scan
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ./Server/MuchToDo
+  # Test pipeline
+  test-and-scan:
+    name: Test, Lint & Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Server/MuchToDo
 
-  #   steps:
-  #     - name: Checkout source
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v5
-  #       with:
-  #         go-version: ${{ env.GO_VERSION }}
-  #         cache: true
-  #         cache-dependency-path: Server/MuchToDo/go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: Server/MuchToDo/go.sum
 
-  #     - name: Download dependencies
-  #       run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-  #     # # Code Quality Checks
-  #     # - name: Run golangci-lint
-  #     #   uses: golangci/golangci-lint-action@v6
-  #     #   with:
-  #     #     version: v1.64.8
-  #     #     args: --timeout=5m
-  #     #     working-directory: Server/MuchToDo
+      # # Code Quality Checks
+      # - name: Run golangci-lint
+      #   uses: golangci/golangci-lint-action@v6
+      #   with:
+      #     version: v1.64.8
+      #     args: --timeout=5m
+      #     working-directory: Server/MuchToDo
 
-  #     - name: Run unit tests
-  #       run: |
-  #         go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
+      - name: Run unit tests
+        run: |
+          go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
+          ls -al
 
-  #     - name: Run integration tests
-  #       run: |
-  #         go test ./... -tags=integration -race
-  #       env:
-  #         # Example: database or external services
-  #         DB_HOST: localhost
-  #         DB_PORT: 5432
+      - name: Run integration tests
+        run: |
+          go test ./... -tags=integration -race
+        env:
+          # Example: database or external services
+          DB_HOST: localhost
+          DB_PORT: 5432
 
-  #     # Vulnerability Scan
-  #     - name: Run Trivy security scan
-  #       uses: aquasecurity/trivy-action@0.15.0
-  #       with:
-  #         scan-type: fs
-  #         scan-ref: Server/MuchToDo
-  #         severity: HIGH,CRITICAL
-  #         exit-code: '1'
-  #         ignore-unfixed: true
+      # Vulnerability Scan
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@0.15.0
+        with:
+          scan-type: fs
+          scan-ref: Server/MuchToDo
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
 
-  #     # Upload Coverage (optional)
-  #     - name: Upload coverage artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: go-coverage
-  #         path: coverage.out
+      # Upload Coverage (optional)
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: coverage.out
 
 
   # Build pipeline
   build:
-    # needs: test-and-scan
+    needs: test-and-scan
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
