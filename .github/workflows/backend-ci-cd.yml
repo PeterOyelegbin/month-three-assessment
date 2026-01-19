@@ -107,13 +107,18 @@ jobs:
           DOCKER_BUILDKIT: 1
         run: |
           docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
-            -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
-            -t ${{ env.ECR_REPOSITORY }}:latest .
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest .
 
-      - name: Scan Docker image
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Scan Docker image from ECR
         uses: aquasecurity/trivy-action@0.15.0
         with:
-          image-ref: '${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
@@ -123,30 +128,86 @@ jobs:
       - name: Debug - Show Trivy Results (if scan fails)
         if: failure()
         run: |
-          # Try to run trivy again with table format to see what was found
-          docker run --rm aquasec/trivy:0.68.2 image \
-            --severity HIGH,CRITICAL \
-            --ignore-unfixed \
-            ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} || true
-
-      # - name: Upload Trivy scan results
-      #   uses: github/codeql-action/upload-sarif@v4
-      #   if: always()
-      #   with:
-      #     sarif_file: 'trivy-results.sarif'
-
-      - name: Tag image for ECR and push
-        if: success() && github.ref == 'refs/heads/main'
-        run: |
-          # Tag for ECR
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+          # Install and run trivy directly
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.68.2
+          trivy image --severity HIGH,CRITICAL --ignore-unfixed --format table \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          docker tag ${{ env.ECR_REPOSITORY }}:latest \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+
+  # build:
+  #   needs: test-and-scan
+  #   if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./Server/MuchToDo
+
+  #   steps:
+  #     - name: Checkout source
+  #       uses: actions/checkout@v4
+
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ vars.AWS_REGION }}
+
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
+
+  #     - name: Build Docker image
+  #       env:
+  #         DOCKER_BUILDKIT: 1
+  #       run: |
+  #         docker build --build-arg BUILDKIT_INLINE_CACHE=1 \
+  #           -t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+  #           -t ${{ env.ECR_REPOSITORY }}:latest .
+
+  #     - name: Scan Docker image
+  #       uses: aquasecurity/trivy-action@0.15.0
+  #       with:
+  #         image-ref: '${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
+  #         severity: HIGH,CRITICAL
+  #         exit-code: '1'
+  #         ignore-unfixed: true
+  #         format: 'sarif'
+  #         output: 'trivy-results.sarif'
+
+  #     - name: Debug - Show Trivy Results (if scan fails)
+  #       if: failure()
+  #       run: |
+  #         # Try to run trivy again with table format to see what was found
+  #         docker run --rm aquasec/trivy:0.68.2 image \
+  #           --severity HIGH,CRITICAL \
+  #           --ignore-unfixed \
+  #           ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} || true
+
+  #     # - name: Upload Trivy scan results
+  #     #   uses: github/codeql-action/upload-sarif@v4
+  #     #   if: always()
+  #     #   with:
+  #     #     sarif_file: 'trivy-results.sarif'
+
+  #     - name: Tag image for ECR and push
+  #       if: success() && github.ref == 'refs/heads/main'
+  #       run: |
+  #         # Tag for ECR
+  #         docker tag ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+  #           ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+  #         docker tag ${{ env.ECR_REPOSITORY }}:latest \
+  #           ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           
-          # Push to ECR
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+  #         # Push to ECR
+  #         docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+  #         docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
 
   # Deploy pipeline
