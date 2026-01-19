@@ -1,8 +1,8 @@
 name: Backend CI/CD Pipeline
 
-# permissions:
-#   security-events: write
-#   contents: read
+permissions:
+  security-events: write
+  contents: read
 
 on:
   push:
@@ -22,7 +22,7 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  # Test pipeline
+  # Test application
   test-and-scan:
     name: Test, Lint & Scan
     runs-on: ubuntu-latest
@@ -44,28 +44,25 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      # # Code Quality Checks
-      # - name: Run golangci-lint
-      #   uses: golangci/golangci-lint-action@v6
-      #   with:
-      #     version: v1.64.8
-      #     args: --timeout=5m
-      #     working-directory: Server/MuchToDo
+      # Code Quality Checks
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          args: --timeout=5m
+          working-directory: Server/MuchToDo
 
       - name: Run unit tests
         run: |
           go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
-          ls -al
 
       - name: Run integration tests
         run: |
           go test ./... -tags=integration -race
         env:
-          # Example: database or external services
           DB_HOST: localhost
           DB_PORT: 5432
 
-      # Vulnerability Scan
       - name: Run Trivy security scan
         uses: aquasecurity/trivy-action@0.15.0
         with:
@@ -75,7 +72,6 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
 
-      # Upload Coverage (optional)
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -83,7 +79,7 @@ jobs:
           path: Server/MuchToDo/coverage.out
 
 
-  # Build pipeline
+  # Build application
   build:
     needs: test-and-scan
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
@@ -144,7 +140,7 @@ jobs:
           sarif_file: Server/MuchToDo/trivy-results.sarif
 
 
-  # Deploy pipeline
+  # Deploy application
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
