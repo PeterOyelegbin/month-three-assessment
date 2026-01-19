@@ -119,45 +119,41 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-      - name: Scan Docker image from ECR (with details)
-        id: trivy-scan-detail
-        continue-on-error: true  # Don't fail immediately
+      # - name: Scan Docker image from ECR (with details)
+      #   id: trivy-scan-detail
+      #   run: |
+      #     # Install and run trivy directly
+      #     curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.68.2
+          
+      #     echo "=== Running Trivy Scan ==="
+      #     trivy image \
+      #       --severity HIGH,CRITICAL \
+      #       --ignore-unfixed \
+      #       --format table \
+      #       ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          
+      #     echo "=== Exit Code: $? ==="
+
+      - name: Scan Docker image from ECR (SARIF output)
+        id: trivy-scan
         run: |
-          # Install and run trivy directly
+          # Install trivy v0.68.2
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.68.2
           
-          echo "=== Running Trivy Scan ==="
+          # Run scan with SARIF output
           trivy image \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
-            --format table \
+            --format sarif \
+            --output trivy-results.sarif \
+            --exit-code 1 \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           
-          echo "=== Exit Code: $? ==="
-
-      - name: Scan Docker image from ECR
-        id: trivy-scan
-        if: steps.trivy-scan-detail.outcome == 'success'
-        uses: aquasecurity/trivy-action@0.15.0
-        with:
-          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
-          severity: HIGH,CRITICAL
-          exit-code: 1
-          ignore-unfixed: true
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Debug - Show Trivy Results (if scan fails)
-        if: steps.trivy-scan.outcome == 'failure'
-        run: |
-          # Install and run trivy directly
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.68.2
-          trivy image --severity HIGH,CRITICAL --ignore-unfixed --format table \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "Trivy scan completed with exit code: $?"
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v4
-        if: always() && steps.trivy-scan.outcome == 'success'
+        if: always()
         with:
           sarif_file: 'trivy-results.sarif'
 
