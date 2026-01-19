@@ -111,7 +111,7 @@ jobs:
             -t ${{ env.ECR_REPOSITORY }}:latest .
 
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@0.68.2
+        uses: aquasecurity/trivy-action@0.15.0
         with:
           image-ref: '${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}'
           severity: HIGH,CRITICAL
