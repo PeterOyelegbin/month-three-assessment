@@ -2,7 +2,7 @@ name: Infrastructure Deployment
 
 on:
   push:
-    branches: [main, staging]
+    branches: [dev, staging]
     paths: 
       - 'terraform/**'
       - '.github/workflows/infrastructure-deploy.yml'
