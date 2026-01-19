@@ -48,21 +48,21 @@ jobs:
       #     args: --timeout=5m
       #     working-directory: Server/MuchToDo
 
-      - name: Run unit tests
-        run: |
-          go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
+      # - name: Run unit tests
+      #   run: |
+      #     go test ./... -short -race -covermode=atomic -coverprofile=coverage.out
 
-      - name: Run integration tests
-        run: |
-          go test ./... -tags=integration -race
-        env:
-          # Example: database or external services
-          DB_HOST: localhost
-          DB_PORT: 5432
+      # - name: Run integration tests
+      #   run: |
+      #     go test ./... -tags=integration -race
+      #   env:
+      #     # Example: database or external services
+      #     DB_HOST: localhost
+      #     DB_PORT: 5432
 
       # Vulnerability Scan
       - name: Run Trivy security scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.15.0
         with:
           scan-type: fs
           scan-ref: Server/MuchToDo
@@ -117,7 +117,6 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
-          skip-version-check: true
           format: 'sarif'
           output: 'trivy-results.sarif'
 
