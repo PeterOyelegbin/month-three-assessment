@@ -11,25 +11,8 @@ on:
     paths: ['terraform/**']
   workflow_dispatch:
 
-# env:
-#   TF_VAR_region: ${{ vars.AWS_REGION }}
-#   TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
-#   TF_VAR_availability_zones: ${{ vars.AWS_AVAILABILITY_ZONE }}
-#   TF_VAR_public_subnet_cidrs: ${{ vars.AWS_PUBLIC_SUBNET_CIDRS }}
-#   TF_VAR_private_subnet_cidrs: ${{ vars.AWS_PRIVATE_SUBNET_CIDRS }}
-#   TF_VAR_instance_type: ${{ vars.AWS_ASG_INSTANCE_TYPE }}
-#   TF_VAR_desired_capacity: ${{ vars.AWS_ASG_DESIRED_CAPACITY }}
-#   TF_VAR_max_size: ${{ vars.AWS_ASG_MAX_SIZE }}
-#   TF_VAR_min_size: ${{ vars.AWS_ASG_MIN_SIZE }}
-#   TF_VAR_redis_engine_version: ${{ vars.AWS_REDIS_ENGINE_VERSION }}
-#   TF_VAR_redis_node_type: ${{ vars.AWS_REDIS_NODE_TYPE }}
-#   TF_VAR_redis_num_node_grps: ${{ vars.AWS_REDIS_NUM_NODE_GRPS }}
-#   TF_VAR_redis_replicas_per_node_grp: ${{ vars.AWS_REDIS_REPLICAS_PER_NODE_GRPS }}
-#   TF_VAR_redis_snapshot_retention_limit: ${{ vars.AWS_REDIS_SNAPSHOT_RETENTION_LIMIT }}
-#   TF_VAR_redis_snapshot_window: ${{ vars.AWS_REDIS_SNAPSHOT_WINDOW }}
-#   TF_VAR_redis_maintenance_window: ${{ vars.AWS_REDIS_MAINTENANCE_WINDOW }}
-#   TF_VAR_redis_cloudwatch_retention_in_days: ${{ vars.AWS_REDIS_CLOUDWATCH_RETENTION_DAYS }}
-#   TF_VAR_ecr_image_retention_count: ${{ vars.AWS_ECR_IMAGE_RETENTION_COUNT }}
+env:
+  AWS_REGION: $(echo '${{ vars.TERRAFORM_TFVARS }}' | sed -n 's/.*region = "\([^"]*\).*/\1/p')
 
 jobs:
   terraform-plan:
@@ -67,12 +50,14 @@ jobs:
           cat > terraform.tfvars << 'EOF'
           ${{ vars.TERRAFORM_TFVARS }}
           EOF
+
+          echo "Region is: ${{ env.AWS_REGION }}"
           
           # Verify the file was created
           echo "Created terraform.tfvars:"
           cat terraform.tfvars
 
-          terraform plan -var-file=terraform.tfvars -out=tfplan
+          terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
         id: plan
 
       - name: Upload Plan
@@ -82,82 +67,82 @@ jobs:
           path: terraform/tfplan
 
 
-  terraform-apply:
-    needs: terraform-plan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./terraform
+  # terraform-apply:
+  #   needs: terraform-plan
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./terraform
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v2
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
+  #     - name: Terraform Init
+  #       run: terraform init
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: terraform/
+  #     - name: Download Plan
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: tfplan
+  #         path: terraform/
 
-      - name: List Downloaded Files
-        run: |
-          echo "Current directory contents:"
-          ls -la
+  #     - name: List Downloaded Files
+  #       run: |
+  #         echo "Current directory contents:"
+  #         ls -la
           
-          # If the artifact was zipped, unzip it
-          if [ -f "tfplan.zip" ]; then
-            unzip -o tfplan.zip
-            ls -la
-          fi
+  #         # If the artifact was zipped, unzip it
+  #         if [ -f "tfplan.zip" ]; then
+  #           unzip -o tfplan.zip
+  #           ls -la
+  #         fi
 
-      - name: Terraform Apply
-        run: |
-          # Write the variable content to a file
-          cat > terraform.tfvars << 'EOF'
-          ${{ vars.TERRAFORM_TFVARS }}
-          EOF
+  #     - name: Terraform Apply
+  #       run: |
+  #         # Write the variable content to a file
+  #         cat > terraform.tfvars << 'EOF'
+  #         ${{ vars.TERRAFORM_TFVARS }}
+  #         EOF
 
-          terraform apply -var-file=terraform.tfvars tfplan
+  #         terraform apply -var-file=terraform.tfvars tfplan
 
-      - name: Output Terraform Data
-        run: terraform output -json 2>/dev/null | grep -v "^::debug::" | head -n -0 > outputs.json
+  #     - name: Output Terraform Data
+  #       run: terraform output -json 2>/dev/null | grep -v "^::debug::" | head -n -0 > outputs.json
 
-      - name: Verify Terraform Outputs
-        run: |
-          # Check if file starts with {
-          if [[ $(head -n 1 outputs.json) != "{" ]]; then
-            echo "File doesn't start with {, cleaning..."
-            # Remove first line
-            tail -n +2 outputs.json > outputs_clean.json
-            mv outputs_clean.json outputs.json
-          fi
+  #     - name: Verify Terraform Outputs
+  #       run: |
+  #         # Check if file starts with {
+  #         if [[ $(head -n 1 outputs.json) != "{" ]]; then
+  #           echo "File doesn't start with {, cleaning..."
+  #           # Remove first line
+  #           tail -n +2 outputs.json > outputs_clean.json
+  #           mv outputs_clean.json outputs.json
+  #         fi
 
-          python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
+  #         python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
-      - name: Install Python dependencies
-        run: pip3 install pynacl
+  #     - name: Install Python dependencies
+  #       run: pip3 install pynacl
 
-      - name: Update GitHub Secrets
-        env:
-          GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        working-directory: ./terraform
-        run: |
-          python3 scripts/update_env_vars.py
+  #     - name: Update GitHub Secrets
+  #       env:
+  #         GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
+  #         GITHUB_REPOSITORY: ${{ github.repository }}
+  #       working-directory: ./terraform
+  #       run: |
+  #         python3 scripts/update_env_vars.py
 
 
   terraform-destroy:
