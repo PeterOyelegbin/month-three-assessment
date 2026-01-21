@@ -57,47 +57,47 @@ jobs:
           path: terraform/tfplan
 
 
-  # terraform-apply:
-  #   needs: terraform-plan
-  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ./terraform
+  terraform-apply:
+    needs: terraform-plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
     
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ vars.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
 
-  #     - name: Terraform Init
-  #       run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-  #     - name: Download Plan
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: tfplan
-  #         path: terraform/
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/
 
-  #     - name: List Downloaded Files
-  #       run: |
-  #         echo "Current directory contents:"
-  #         ls -la
+      - name: List Downloaded Files
+        run: |
+          echo "Current directory contents:"
+          ls -la
           
-  #         # If the artifact was zipped, unzip it
-  #         if [ -f "tfplan.zip" ]; then
-  #           unzip -o tfplan.zip
-  #           ls -la
-  #         fi
+          # If the artifact was zipped, unzip it
+          if [ -f "tfplan.zip" ]; then
+            unzip -o tfplan.zip
+            ls -la
+          fi
 
   #     - name: Terraform Apply
   #       run: |
