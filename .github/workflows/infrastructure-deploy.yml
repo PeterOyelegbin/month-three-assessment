@@ -11,9 +11,6 @@ on:
     paths: ['terraform/**']
   workflow_dispatch:
 
-env:
-  AWS_REGION: $(echo '${{ vars.TERRAFORM_TFVARS }}' | sed -n 's/.*region = "\([^"]*\).*/\1/p')
-
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
@@ -44,20 +41,13 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
-        # run: |
-        #   # Write the variable content to a file
-        #   cat > terraform.tfvars << 'EOF'
-        #   ${{ vars.TERRAFORM_TFVARS }}
-        #   EOF
+        run: |
+          # Write the variable content to a file
+          cat > terraform.tfvars << 'EOF'
+          ${{ vars.TERRAFORM_TFVARS }}
+          EOF
 
-        #   echo "Region is: ${{ env.AWS_REGION }}"
-          
-        #   # Verify the file was created
-        #   echo "Created terraform.tfvars:"
-        #   cat terraform.tfvars
-
-        #   terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
+          terraform plan -var-file=terraform.tfvars -out=tfplan
         id: plan
 
       - name: Upload Plan
