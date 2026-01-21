@@ -2,7 +2,7 @@ name: Infrastructure Deployment
 
 on:
   push:
-    branches: [main, staging]
+    branches: [dev, staging]
     paths: 
       - 'terraform/**'
       - '.github/workflows/infrastructure-deploy.yml'
@@ -88,51 +88,45 @@ jobs:
           name: tfplan
           path: terraform/
 
-      - name: List Downloaded Files
+      # - name: List Downloaded Files
+      #   run: |
+      #     echo "Current directory contents:"
+      #     ls -la
+
+      - name: Terraform Apply
         run: |
-          echo "Current directory contents:"
-          ls -la
-          
-          # If the artifact was zipped, unzip it
-          if [ -f "tfplan.zip" ]; then
-            unzip -o tfplan.zip
-            ls -la
+          # Write the variable content to a file
+          cat > terraform.tfvars << 'EOF'
+          ${{ vars.TERRAFORM_TFVARS }}
+          EOF
+
+          terraform apply -var-file=terraform.tfvars tfplan
+
+      - name: Output Terraform Data
+        run: terraform output -json 2>/dev/null | grep -v "^::debug::" | head -n -0 > outputs.json
+
+      - name: Verify Terraform Outputs
+        run: |
+          # Check if file starts with {
+          if [[ $(head -n 1 outputs.json) != "{" ]]; then
+            echo "File doesn't start with {, cleaning..."
+            # Remove first line
+            tail -n +2 outputs.json > outputs_clean.json
+            mv outputs_clean.json outputs.json
           fi
 
-  #     - name: Terraform Apply
-  #       run: |
-  #         # Write the variable content to a file
-  #         cat > terraform.tfvars << 'EOF'
-  #         ${{ vars.TERRAFORM_TFVARS }}
-  #         EOF
+          python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
-  #         terraform apply -var-file=terraform.tfvars tfplan
+      - name: Install Python dependencies
+        run: pip3 install pynacl
 
-  #     - name: Output Terraform Data
-  #       run: terraform output -json 2>/dev/null | grep -v "^::debug::" | head -n -0 > outputs.json
-
-  #     - name: Verify Terraform Outputs
-  #       run: |
-  #         # Check if file starts with {
-  #         if [[ $(head -n 1 outputs.json) != "{" ]]; then
-  #           echo "File doesn't start with {, cleaning..."
-  #           # Remove first line
-  #           tail -n +2 outputs.json > outputs_clean.json
-  #           mv outputs_clean.json outputs.json
-  #         fi
-
-  #         python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
-
-  #     - name: Install Python dependencies
-  #       run: pip3 install pynacl
-
-  #     - name: Update GitHub Secrets
-  #       env:
-  #         GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
-  #         GITHUB_REPOSITORY: ${{ github.repository }}
-  #       working-directory: ./terraform
-  #       run: |
-  #         python3 scripts/update_env_vars.py
+      - name: Update GitHub Secrets
+        env:
+          GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        working-directory: ./terraform
+        run: |
+          python3 scripts/update_env_vars.py
 
 
   terraform-destroy:
