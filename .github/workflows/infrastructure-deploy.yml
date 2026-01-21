@@ -35,7 +35,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
         run: terraform init
@@ -44,20 +44,20 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        # run: terraform plan -out=tfplan
-        run: |
-          # Write the variable content to a file
-          cat > terraform.tfvars << 'EOF'
-          ${{ vars.TERRAFORM_TFVARS }}
-          EOF
+        run: terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
+        # run: |
+        #   # Write the variable content to a file
+        #   cat > terraform.tfvars << 'EOF'
+        #   ${{ vars.TERRAFORM_TFVARS }}
+        #   EOF
 
-          echo "Region is: ${{ env.AWS_REGION }}"
+        #   echo "Region is: ${{ env.AWS_REGION }}"
           
-          # Verify the file was created
-          echo "Created terraform.tfvars:"
-          cat terraform.tfvars
+        #   # Verify the file was created
+        #   echo "Created terraform.tfvars:"
+        #   cat terraform.tfvars
 
-          terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
+        #   terraform plan -var-file=${{ vars.TERRAFORM_TFVARS }} -out=tfplan
         id: plan
 
       - name: Upload Plan
