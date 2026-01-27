@@ -88,11 +88,6 @@ jobs:
           name: tfplan
           path: terraform/
 
-      # - name: List Downloaded Files
-      #   run: |
-      #     echo "Current directory contents:"
-      #     ls -la
-
       - name: Terraform Apply
         run: |
           # Write the variable content to a file
@@ -117,16 +112,35 @@ jobs:
 
           python3 -c "import json; json.load(open('outputs.json'))" && echo "✓ Valid JSON"
 
-      - name: Install Python dependencies
-        run: pip3 install pynacl
-
-      - name: Update GitHub Secrets
-        env:
-          GITHUB_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        working-directory: ./terraform
+      - name: Read Terraform outputs
         run: |
-          python3 scripts/update_env_vars.py
+          # Extract values from outputs.json
+          ASG_SERVER_IDS=$(jq -r '.asg_instance_ids.value | join(",")' outputs.json)
+          LOAD_BALANCER_DNS_NAME=$(jq -r '.load_balancer_dns_name.value' outputs.json)
+          REDIS_ENDPOINT=$(jq -r '.redis_primary_endpoint.value' outputs.json)
+          CLOUDFRONT_DISTRIBUTION_ID=$(jq -r '.distribution_id.value' outputs.json)
+          CLOUDFRONT_URL=$(jq -r '.cloudfront_url.value' outputs.json)
+          ECR_REPO_URL=$(jq -r '.ecr_repo_url.value' outputs.json)
+
+          echo "ASG_SERVER_IDS=$ASG_SERVER_IDS" >> $GITHUB_ENV
+          echo "LOAD_BALANCER_DNS_NAME=$LOAD_BALANCER_DNS_NAME" >> $GITHUB_ENV
+          echo "REDIS_ENDPOINT=$REDIS_ENDPOINT" >> $GITHUB_ENV
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
+          echo "CLOUDFRONT_URL=$CLOUDFRONT_URL" >> $GITHUB_ENV
+          echo "ECR_REPO_URL=$ECR_REPO_URL" >> $GITHUB_ENV
+
+      - name: Update GitHub Secrets from Terraform Outputs
+        env:
+          GH_TOKEN: ${{ vars.CICD_PAT_TOKEN }}
+        run: |
+          gh secret set ASG_SERVER_IDS --body "$ASG_SERVER_IDS"
+          gh secret set LOAD_BALANCER_DNS_NAME --body "$LOAD_BALANCER_DNS_NAME"
+          gh secret set REDIS_ENDPOINT --body "$REDIS_ENDPOINT"
+          gh secret set CLOUDFRONT_DISTRIBUTION_ID --body "$CLOUDFRONT_DISTRIBUTION_ID"
+          gh secret set CLOUDFRONT_URL --body "$CLOUDFRONT_URL"
+          gh secret set ECR_REPO_URL --body "$ECR_REPO_URL"
+
+          echo "Secrets updated successfully"
 
 
   terraform-destroy:
